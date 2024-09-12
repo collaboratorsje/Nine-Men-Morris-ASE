@@ -6,7 +6,7 @@ Team Members: Han Zhou, Seth Emery, Roman Hunter, Sai Vignesh
 Requirements
 Python 3.x
 
-##Windows
+# Windows
 Pull Repository
 
 git clone https://github.com/collaboratorsje/swe-capstone.git
@@ -28,7 +28,7 @@ Launch with
 flask run
 Open in browser at http://127.0.0.1:5000 or http://localhost:5000
 
-##Mac
+# Mac
 Note: The Mac setup is similar to the Windows setup, but with slight command differences.
 
 Virtual Environment Setup
