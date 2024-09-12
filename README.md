@@ -9,11 +9,14 @@ Python 3.x
 # Windows
 Pull Repository
 
-git clone https://github.com/collaboratorsje/swe-capstone.git
+    git clone https://github.com/collaboratorsje/swe-capstone.git
+
 Virtual Environment Setup
 
-cd Nine-Men-Morris-ASE
-    python -m venv venv 
+    cd Nine-Men-Morris-ASE
+
+    python -m venv venv
+
 Activate Virtual Environment (Must do every time you launch, you'll see (venv) in your terminal)
 
     .\venv\Scripts\Activate.ps1 # If using Powershell
@@ -34,7 +37,13 @@ Open in browser at http://127.0.0.1:5000 or http://localhost:5000
 # Mac
 Note: The Mac setup is similar to the Windows setup, but with slight command differences.
 
+Pull Repository
+
+    git clone https://github.com/collaboratorsje/swe-capstone.git
+    
 Virtual Environment Setup
+
+    cd Nine-Men-Morris-ASE
 
     python3 -m virtualenv venv
 
@@ -49,5 +58,5 @@ Install Requirements
 Launch with
 
     flask run
-    
+
 Open in browser at http://127.0.0.1:5000 or http://localhost:5000
