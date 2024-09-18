@@ -30,14 +30,16 @@ That script on windows is setup.bat
     setup.bat
 
 To start the backend only:
+
     cd backend
     flask run
 
 To start the backend and frontend concurrently (recommended):
+
     cd client
     npm start
 
-Open in browser at http://127.0.0.1:5000 or http://localhost:5000
+Open in a browser at http://127.0.0.1:5000 or http://localhost:5000
 
 # Mac
 Note: The Mac setup is similar to the Windows setup, but with slight command differences.
@@ -49,14 +51,16 @@ That script on mac is setup.sh
     ./setup.sh
 
 To start the backend only:
+
     cd backend
     flask run
 
 To start the backend and frontend concurrently (recommended):
+
     cd client
     npm start
 
-Open in browser at http://127.0.0.1:5000 or http://localhost:5000
+Open in a browser at http://127.0.0.1:5000 or http://localhost:5000
 
 ### 3. **How This Works**
 
