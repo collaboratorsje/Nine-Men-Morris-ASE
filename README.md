@@ -22,7 +22,7 @@ Ensure you have the following installed:
    git clone https://github.com/collaboratorsje/Nine-Men-Morris-ASE.git
    cd Nine-Men-Morris-ASE
 
-
+2. Run the bash script (follow the steps for windows or mac)
 # Windows
 Run a shell script that installs dependencies and creates virtual environment.
 That script on windows is setup.bat
