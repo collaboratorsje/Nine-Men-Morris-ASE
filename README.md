@@ -23,7 +23,7 @@ Ensure you have the following installed:
    cd Nine-Men-Morris-ASE
 
 2. Run the bash script (follow the steps for windows or mac)
-# Windows
+## Windows
 Run a shell script that installs dependencies and creates virtual environment.
 That script on windows is setup.bat
 
@@ -41,7 +41,7 @@ To start the backend and frontend concurrently (recommended):
 
 Open in a browser at http://127.0.0.1:5000 or http://localhost:5000
 
-# Mac
+## Mac
 Note: The Mac setup is similar to the Windows setup, but with slight command differences.
 
 Run a shell script that installs dependencies and creates virtual environment.
@@ -62,7 +62,7 @@ To start the backend and frontend concurrently (recommended):
 
 Open in a browser at http://127.0.0.1:5000 or http://localhost:5000
 
-### **How This Works**
+## **How This Works**
 
 - **For the Backend:**
   - The script will create and activate a Python virtual environment in the `backend` directory.
