@@ -62,7 +62,7 @@ To start the backend and frontend concurrently (recommended):
 
 Open in a browser at http://127.0.0.1:5000 or http://localhost:5000
 
-### 3. **How This Works**
+### **How This Works**
 
 - **For the Backend:**
   - The script will create and activate a Python virtual environment in the `backend` directory.
