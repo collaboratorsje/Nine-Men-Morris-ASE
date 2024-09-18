@@ -3,60 +3,66 @@ Advanced Software Engineering (CS5551) - Project Repository
 
 Team Members: Han Zhou, Seth Emery, Roman Hunter, Sai Vignesh
 
-# Requirements
-Python 3.x
+# Nine Men's Morris Project Setup
+
+This project is divided into two parts:
+1. **Backend**: Powered by Flask (Python)
+2. **Frontend**: Powered by React (JavaScript)
+
+## Prerequisites
+Ensure you have the following installed:
+- Python 3.8+ (https://www.python.org/downloads/)
+- Node.js (https://nodejs.org/en/download/)
+
+## Setup Steps
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/collaboratorsje/Nine-Men-Morris-ASE.git
+   cd Nine-Men-Morris-ASE
+
 
 # Windows
-Pull Repository
+Run a shell script that installs dependencies and creates virtual environment
+That script on windows is setup.bat
 
-    git clone https://github.com/collaboratorsje/swe-capstone.git
+    setup.bat
 
-Virtual Environment Setup
-
-    cd Nine-Men-Morris-ASE
-
-    python -m venv venv
-
-Activate Virtual Environment (Must do every time you launch, you'll see (venv) in your terminal)
-
-    .\venv\Scripts\Activate.ps1 # If using Powershell
-or
-
-    .\venv\Scripts\activate.bat # If using Command Prompt
-
-Install Requirements
-
-    python -m pip install -r .\requirements.txt
-
-Launch with
-
+To start the backend only:
+    cd backend
     flask run
+
+To start the backend and frontend concurrently (recommended):
+    cd client
+    npm start
 
 Open in browser at http://127.0.0.1:5000 or http://localhost:5000
 
 # Mac
 Note: The Mac setup is similar to the Windows setup, but with slight command differences.
 
-Pull Repository
+Run a shell script that installs dependencies and creates virtual environment
+That script on mac is setup.sh
 
-    git clone https://github.com/collaboratorsje/swe-capstone.git
-    
-Virtual Environment Setup
+    chmod +x setup.sh
+    ./setup.sh
 
-    cd Nine-Men-Morris-ASE
-
-    python3 -m virtualenv venv
-
-Activate Virtual Environment (Must do every time you launch, you'll see (venv) in your terminal)
-
-    source ./venv/bin/activate
-
-Install Requirements
-
-    python3 -m pip install -r ./requirements.txt
-
-Launch with
-
+To start the backend only:
+    cd backend
     flask run
 
+To start the backend and frontend concurrently (recommended):
+    cd client
+    npm start
+
 Open in browser at http://127.0.0.1:5000 or http://localhost:5000
+
+### 3. **How This Works**
+
+- **For the Backend:**
+  - The script will create and activate a Python virtual environment in the `backend` directory.
+  - It will install the backend dependencies from the `requirements.txt` file.
+
+- **For the Frontend:**
+  - The script will navigate to the `client` folder and run `npm install` to install the frontend dependencies.
