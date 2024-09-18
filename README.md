@@ -24,7 +24,7 @@ Ensure you have the following installed:
 
 
 # Windows
-Run a shell script that installs dependencies and creates virtual environment
+Run a shell script that installs dependencies and creates virtual environment.
 That script on windows is setup.bat
 
     setup.bat
@@ -42,7 +42,7 @@ Open in browser at http://127.0.0.1:5000 or http://localhost:5000
 # Mac
 Note: The Mac setup is similar to the Windows setup, but with slight command differences.
 
-Run a shell script that installs dependencies and creates virtual environment
+Run a shell script that installs dependencies and creates virtual environment.
 That script on mac is setup.sh
 
     chmod +x setup.sh
