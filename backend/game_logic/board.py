@@ -2,7 +2,7 @@ class Board:
     def __init__(self, game_type='nine_mens_morris'):
         """Initialize the board with a 7x7 grid and valid positions."""
         self.size = 7
-        self.grid = [[None for _ in range(self.size)] for _ in range(self.size)]
+        self.grid = [[None for _ in range(7)] for _ in range(7)]  # 7x7 grid with None values
         self.valid_positions = self.get_valid_positions()
 
     def get_valid_positions(self):

@@ -1,26 +1,20 @@
-import logo from './logo.svg';
-import './App.css';
+// src/App.js
+import React from 'react';
+import './App.css';  // Optional: General app-wide styles
+import Board from './components/Board';  // Import the Board component
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>Nine Men's Morris!!</p>
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <h1>Play Nine Men's Morris</h1>
       </header>
+      <main>
+        <Board />  {/* Render the Board component here */}
+      </main>
     </div>
   );
 }
 
 export default App;
+
