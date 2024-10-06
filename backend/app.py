@@ -16,8 +16,11 @@ def place_piece():
     data = request.get_json()  # Get the position data from the frontend
     x = data['x']
     y = data['y']
+    player = data['player']  # Get the current player (1 or 2)
 
-    success = game_manager.place_piece(x, y)  # Use GameManager to place the piece
+    print(f"Placing piece by Player {player} at position ({x}, {y})")
+
+    success = game_manager.place_piece(x, y, player)  # Use GameManager to place the piece
     return jsonify(success=success, board=game_manager.get_board_state())
 
 @app.route('/api/board', methods=['GET'])

@@ -4,54 +4,58 @@ class GameManager:
         self.board = board
         self.player1 = player1
         self.player2 = player2
-        self.current_player = player1  # Start with player 1
         self.phase = 'placing'  # Track the current phase of the game
 
-    def switch_turn(self):
-        """Switch the current player."""
-        self.current_player = self.player1 if self.current_player == self.player2 else self.player2
+    def get_player_by_id(self, player_id):
+        """Return the player object based on player_id."""
+        return self.player1 if player_id == 1 else self.player2
 
-    def place_piece(self, x, y):
-        """Handle placing a piece on the board."""
+    def place_piece(self, x, y, player_id):
+        """Handle placing a piece on the board for the given player."""
+        player = self.get_player_by_id(player_id)  # Identify the player by ID
+
         if self.phase != 'placing':
             return False
         
         if self.board.is_valid_position(x, y) and self.board.grid[x][y] is None:
-            if self.current_player.place_piece((x, y)):  # Place the piece
-                self.board.grid[x][y] = self.current_player.player_id
-                if self.check_for_mill(x, y):
+            if player.place_piece((x, y)):  # Place the piece for the correct player
+                self.board.grid[x][y] = player.player_id
+                if self.check_for_mill(x, y, player):
                     # In real game, you would allow player to remove an opponent's piece now
                     pass
-                self.switch_turn()
-                
+
                 # Transition to moving phase if both players have placed all pieces
                 if self.player1.pieces == 0 and self.player2.pieces == 0:
                     self.phase = 'moving'
+                
                 return True
         return False
 
-    def move_piece(self, from_x, from_y, to_x, to_y):
+    def move_piece(self, from_x, from_y, to_x, to_y, player_id):
         """Handle moving a piece on the board."""
+        player = self.get_player_by_id(player_id)  # Identify the player by ID
+
         if self.phase != 'moving' and self.phase != 'flying':
             return False
         
-        if self.board.grid[from_x][from_y] == self.current_player.player_id:
+        if self.board.grid[from_x][from_y] == player.player_id:
             # Check if the move is valid (adjacent or flying phase)
             if self.phase == 'flying' or self.is_adjacent(from_x, from_y, to_x, to_y):
                 if self.board.grid[to_x][to_y] is None:
                     # Move the piece
                     self.board.grid[from_x][from_y] = None
-                    self.board.grid[to_x][to_y] = self.current_player.player_id
-                    if self.check_for_mill(to_x, to_y):
+                    self.board.grid[to_x][to_y] = player.player_id
+                    if self.check_for_mill(to_x, to_y, player):
                         # In real game, you would allow player to remove an opponent's piece now
                         pass
-                    self.switch_turn()
                     return True
         return False
 
-    def remove_piece(self, x, y):
+    def remove_piece(self, x, y, player_id):
         """Remove an opponent's piece."""
-        opponent = self.player1 if self.current_player == self.player2 else self.player2
+        player = self.get_player_by_id(player_id)
+        opponent = self.player1 if player == self.player2 else self.player2
+
         if self.board.grid[x][y] == opponent.player_id:
             if not self.check_for_mill(x, y, opponent) or self.all_pieces_in_mills(opponent):
                 self.board.grid[x][y] = None
@@ -89,7 +93,3 @@ class GameManager:
     def get_board_state(self):
         """Return the current state of the board."""
         return self.board.grid
-
-    def current_player_is_flying(self):
-        """Check if the current player is in the flying phase."""
-        return len(self.current_player.placed_pieces) <= 3

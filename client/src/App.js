@@ -1,7 +1,6 @@
-// src/App.js
 import React from 'react';
 import './App.css';  // Optional: General app-wide styles
-import Board from './components/Board';  // Import the Board component
+import Game from './components/Game';  // Import the Game component
 
 function App() {
   return (
@@ -10,11 +9,12 @@ function App() {
         <h1>Play Nine Men's Morris</h1>
       </header>
       <main>
-        <Board />  {/* Render the Board component here */}
+        <Game />  {/* Render the Game component here */}
       </main>
     </div>
   );
 }
 
 export default App;
+
 
