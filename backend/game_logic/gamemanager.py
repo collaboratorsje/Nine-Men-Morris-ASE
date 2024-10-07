@@ -91,5 +91,10 @@ class GameManager:
         return True
 
     def get_board_state(self):
-        """Return the current state of the board."""
-        return self.board.grid
+        """Return the current state of the board along with player info."""
+        return {
+            'grid': self.board.grid,
+            'player1_pieces': self.player1.pieces,
+            'player2_pieces': self.player2.pieces
+        }
+

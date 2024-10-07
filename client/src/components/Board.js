@@ -9,36 +9,38 @@ const Board = ({ gameOptions }) => {
         'b6': null, 'd6': null, 'f6': null, 'a7': null, 'd7': null, 'g7': null
     });
 
+    const [player1Pieces, setPlayer1Pieces] = useState(9);  // Track player 1's remaining pieces
+    const [player2Pieces, setPlayer2Pieces] = useState(9);  // Track player 2's remaining pieces
     const [currentPlayer, setCurrentPlayer] = useState(gameOptions?.firstPlayer === 'player1' ? 1 : 2);
 
     useEffect(() => {
-        console.log("Received gameOptions in Board:", gameOptions);
+        // Log gameOptions for debugging to ensure it's passed correctly
+        console.log("Game Options:", gameOptions);
     }, [gameOptions]);
 
+    // Handle placing a piece on the board
     const placePiece = (position) => {
         if (!pieces[position]) {
             const [x, y] = mapPositionToCoordinates(position);
-
-            console.log(`Placing piece at position: ${position} by Player ${currentPlayer}`);
 
             fetch('/api/place', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ x, y, player: currentPlayer })  // Send current player to backend
+                body: JSON.stringify({ x, y, player: currentPlayer })  // Pass the current player to backend
             })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    const updatedPieces = mapBoardStateToPositions(data.board);
-                    setPieces(updatedPieces);  // Update the board state
-
+                    const updatedPieces = mapBoardStateToPositions(data.board.grid);  // Updated board grid
+                    setPieces(updatedPieces);  // Update the state with new board data
+                    setPlayer1Pieces(data.board.player1_pieces);  // Update player 1's pieces
+                    setPlayer2Pieces(data.board.player2_pieces);  // Update player 2's pieces
+                    
                     // Switch turn if playing human vs human
                     if (gameOptions.opponentType === 'human') {
-                        const nextPlayer = currentPlayer === 1 ? 2 : 1;
-                        console.log(`Switching turn. Next Player: ${nextPlayer}`);
-                        setCurrentPlayer(nextPlayer);  // Switch players
+                        setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
                     }
                 }
             })
@@ -56,7 +58,9 @@ const Board = ({ gameOptions }) => {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                setPieces(mapBoardStateToPositions(data.board));  // Reset the pieces state
+                setPieces(mapBoardStateToPositions(data.board.grid));  // Reset the pieces state
+                setPlayer1Pieces(data.board.player1_pieces);  // Reset player 1's pieces
+                setPlayer2Pieces(data.board.player2_pieces);  // Reset player 2's pieces
                 setCurrentPlayer(gameOptions?.firstPlayer === 'player1' ? 1 : 2);  // Reset to starting player
             }
         })
@@ -87,6 +91,12 @@ const Board = ({ gameOptions }) => {
 
     return (
         <div className="board-container">
+            {/* Display player 1's remaining pieces */}
+            <div className="player-info">
+                <h3>Player 1 (White)</h3>
+                <p>Remaining pieces: {player1Pieces}</p>
+            </div>
+
             <div className="board">
                 {Object.keys(pieces).map((position) => (
                     <div 
@@ -100,6 +110,13 @@ const Board = ({ gameOptions }) => {
                     </div>
                 ))}
             </div>
+
+            {/* Display player 2's remaining pieces */}
+            <div className="player-info">
+                <h3>Player 2 (Black)</h3>
+                <p>Remaining pieces: {player2Pieces}</p>
+            </div>
+
             <p>Current Turn: Player {currentPlayer}</p>
             <button onClick={resetBoard}>Reset Board</button>
         </div>
@@ -107,5 +124,6 @@ const Board = ({ gameOptions }) => {
 };
 
 export default Board;
+
 
 
