@@ -9,16 +9,23 @@ const Board = ({ gameOptions }) => {
         'b6': null, 'd6': null, 'f6': null, 'a7': null, 'd7': null, 'g7': null
     });
 
-    const [player1Pieces, setPlayer1Pieces] = useState(9);  // Track player 1's remaining pieces
-    const [player2Pieces, setPlayer2Pieces] = useState(9);  // Track player 2's remaining pieces
-    const [currentPlayer, setCurrentPlayer] = useState(gameOptions?.firstPlayer === 'player1' ? 1 : 2);
+    const [player1Pieces, setPlayer1Pieces] = useState(9);  
+    const [player2Pieces, setPlayer2Pieces] = useState(9);  
+    const [currentPlayer, setCurrentPlayer] = useState(null);  // Set null initially
 
     useEffect(() => {
-        // Log gameOptions for debugging to ensure it's passed correctly
-        console.log("Game Options:", gameOptions);
-    }, [gameOptions]);
+        // Fetch the board and player data when the component loads
+        fetch('/api/board')
+            .then(res => res.json())
+            .then(data => {
+                setPieces(mapBoardStateToPositions(data.board.grid));
+                setPlayer1Pieces(data.board.player1_pieces);
+                setPlayer2Pieces(data.board.player2_pieces);
+                setCurrentPlayer(data.current_player);  // Set current player from backend
+            })
+            .catch(error => console.error('Error fetching board state:', error));
+    }, []);
 
-    // Handle placing a piece on the board
     const placePiece = (position) => {
         if (!pieces[position]) {
             const [x, y] = mapPositionToCoordinates(position);
@@ -28,20 +35,16 @@ const Board = ({ gameOptions }) => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ x, y, player: currentPlayer })  // Pass the current player to backend
+                body: JSON.stringify({ x, y, player: currentPlayer })  // Pass current player to backend
             })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    const updatedPieces = mapBoardStateToPositions(data.board.grid);  // Updated board grid
-                    setPieces(updatedPieces);  // Update the state with new board data
-                    setPlayer1Pieces(data.board.player1_pieces);  // Update player 1's pieces
-                    setPlayer2Pieces(data.board.player2_pieces);  // Update player 2's pieces
-                    
-                    // Switch turn if playing human vs human
-                    if (gameOptions.opponentType === 'human') {
-                        setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
-                    }
+                    const updatedPieces = mapBoardStateToPositions(data.board.grid);
+                    setPieces(updatedPieces);
+                    setPlayer1Pieces(data.board.player1_pieces);
+                    setPlayer2Pieces(data.board.player2_pieces);
+                    setCurrentPlayer(data.current_player);  // Set the next player from backend response
                 }
             })
             .catch(error => console.error('Error placing piece:', error));
@@ -58,10 +61,10 @@ const Board = ({ gameOptions }) => {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                setPieces(mapBoardStateToPositions(data.board.grid));  // Reset the pieces state
-                setPlayer1Pieces(data.board.player1_pieces);  // Reset player 1's pieces
-                setPlayer2Pieces(data.board.player2_pieces);  // Reset player 2's pieces
-                setCurrentPlayer(gameOptions?.firstPlayer === 'player1' ? 1 : 2);  // Reset to starting player
+                setPieces(mapBoardStateToPositions(data.board.grid));
+                setPlayer1Pieces(data.board.player1_pieces);
+                setPlayer2Pieces(data.board.player2_pieces);
+                setCurrentPlayer(data.current_player);  // Set to starting player after reset
             }
         })
         .catch(error => console.error('Error resetting the board:', error));
@@ -117,7 +120,7 @@ const Board = ({ gameOptions }) => {
                 <p>Remaining pieces: {player2Pieces}</p>
             </div>
 
-            <p>Current Turn: Player {currentPlayer}</p>
+            <p>Current Turn: Player {currentPlayer ? currentPlayer : '...'}</p>
             <button onClick={resetBoard}>Reset Board</button>
         </div>
     );

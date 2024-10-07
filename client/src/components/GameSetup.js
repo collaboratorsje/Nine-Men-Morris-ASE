@@ -8,7 +8,23 @@ const GameSetup = ({ startGame }) => {
         event.preventDefault();
         const options = { firstPlayer, opponentType };
         console.log('Submitting game setup options:', options);
-        startGame(options);  // Pass options back to the parent component (Game)
+
+        // Send setup information to the backend to initialize the game
+        fetch('/api/setup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(options)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Call the function passed by the parent component to start the game
+                startGame(options);
+            }
+        })
+        .catch(error => console.error('Error setting up the game:', error));
     };
 
     return (
