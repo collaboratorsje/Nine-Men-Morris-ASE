@@ -12,9 +12,10 @@ const Board = ({ gameOptions }) => {
     const [player1Pieces, setPlayer1Pieces] = useState(9);  
     const [player2Pieces, setPlayer2Pieces] = useState(9);  
     const [currentPlayer, setCurrentPlayer] = useState(null);  // Set null initially
+    const [phase, setPhase] = useState("placing");  // New state for the game phase
 
     useEffect(() => {
-        // Fetch the board and player data when the component loads
+        // Fetch the board, player data, and game phase when the component loads
         fetch('/api/board')
             .then(res => res.json())
             .then(data => {
@@ -22,6 +23,7 @@ const Board = ({ gameOptions }) => {
                 setPlayer1Pieces(data.board.player1_pieces);
                 setPlayer2Pieces(data.board.player2_pieces);
                 setCurrentPlayer(data.current_player);  // Set current player from backend
+                setPhase(data.phase);  // Set the game phase from backend
             })
             .catch(error => console.error('Error fetching board state:', error));
     }, []);
@@ -29,27 +31,32 @@ const Board = ({ gameOptions }) => {
     const placePiece = (position) => {
         if (!pieces[position]) {
             const [x, y] = mapPositionToCoordinates(position);
-
+    
             fetch('/api/place', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ x, y, player: currentPlayer })  // Pass current player to backend
+                body: JSON.stringify({ x, y, player: currentPlayer })
             })
             .then(res => res.json())
             .then(data => {
+                console.log("API Response:", data);  // Log the API response
+    
                 if (data.success) {
                     const updatedPieces = mapBoardStateToPositions(data.board.grid);
                     setPieces(updatedPieces);
                     setPlayer1Pieces(data.board.player1_pieces);
                     setPlayer2Pieces(data.board.player2_pieces);
-                    setCurrentPlayer(data.current_player);  // Set the next player from backend response
+                    setCurrentPlayer(data.current_player);
+                    setPhase(data.phase);  // Update the game phase from the backend
+                } else {
+                    console.error('Failed to place piece');
                 }
             })
             .catch(error => console.error('Error placing piece:', error));
         }
-    };
+    };    
 
     const resetBoard = () => {
         fetch('/api/reset', {
@@ -65,6 +72,7 @@ const Board = ({ gameOptions }) => {
                 setPlayer1Pieces(data.board.player1_pieces);
                 setPlayer2Pieces(data.board.player2_pieces);
                 setCurrentPlayer(data.current_player);  // Set to starting player after reset
+                setPhase(data.phase);  // Reset to initial game phase
             }
         })
         .catch(error => console.error('Error resetting the board:', error));
@@ -120,13 +128,16 @@ const Board = ({ gameOptions }) => {
                 <p>Remaining pieces: {player2Pieces}</p>
             </div>
 
+            {/* Current turn and phase */}
             <p>Current Turn: Player {currentPlayer ? currentPlayer : '...'}</p>
+            <p>Game Phase: {phase || "Loading..."}</p>
             <button onClick={resetBoard}>Reset Board</button>
         </div>
     );
 };
 
 export default Board;
+
 
 
 

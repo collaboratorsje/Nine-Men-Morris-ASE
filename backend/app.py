@@ -35,12 +35,21 @@ def place_piece():
     print(f"Placing piece at position ({x}, {y}) by Player {game_manager.get_current_player()}")
 
     success = game_manager.place_piece(x, y)  # Use GameManager to place the piece
-    return jsonify(success=success, board=game_manager.get_board_state(), current_player=game_manager.get_current_player())
+    phase = game_manager.determine_phase()  # Get the updated phase
+    print("Updated Phase:", phase)  # Debug print to check the updated phase
+
+    # Return the updated board state, current player, and game phase
+    return jsonify(success=success, board=game_manager.get_board_state(), current_player=game_manager.get_current_player(), phase=phase)
 
 @app.route('/api/board', methods=['GET'])
 def get_board():
-    """Get the current state of the board."""
-    return jsonify(board=game_manager.get_board_state(), current_player=game_manager.get_current_player())
+    phase = game_manager.determine_phase()
+    print("Phase:", phase)  # Debug print to check the phase
+    return jsonify(
+        board=game_manager.get_board_state(),
+        current_player=game_manager.get_current_player(),
+        phase=phase  # Include the game phase
+    )
 
 @app.route('/api/reset', methods=['POST'])
 def reset_board():

@@ -114,3 +114,16 @@ class GameManager:
             'current_turn': self.current_player.player_id  # Add current player info
         }
 
+    def get_pieces_on_board(self, player_id):
+        """Return the number of pieces a player has on the board."""
+        count = sum(1 for row in self.board.grid for piece in row if piece == player_id)
+        return count
+
+    def determine_phase(self):
+            """Determine the current phase of the game."""
+            if self.player1.pieces > 0 or self.player2.pieces > 0:
+                return "Placing"
+            elif self.get_pieces_on_board(1) == 3 or self.get_pieces_on_board(2) == 3:
+                return "Flying"
+            else:
+                return "Moving"
