@@ -44,28 +44,41 @@ class GameManager:
                 return True
         return False
 
-    def move_piece(self, from_x, from_y, to_x, to_y):
-        """Handle moving a piece on the board."""
+    def select_piece(self, x, y):
         player = self.current_player
 
-        if self.phase != 'moving' and self.phase != 'flying':
+        # Ensure the selected piece belongs to the current player
+        if self.board.grid[x][y] != player.player_id:
+            return {"success": False, "message": "Invalid selection: Not your piece."}
+
+        # Check if the piece has any valid adjacent moves
+        if not self.board.has_adjacent_moves(x, y):
+            return {"success": False, "message": "No available moves for this piece. Please select another."}
+
+        # Mark as selected if valid
+        self.selected_piece = (x, y)
+        return {"success": True}
+
+    def move_piece(self, from_x, from_y, to_x, to_y):
+        """Move a piece on the board with adjacency checks for the 'Moving' phase."""
+        player = self.current_player  # Use current player directly
+
+        # Ensure the destination is empty and valid
+        if not self.board.is_valid_position(to_x, to_y) or self.board.grid[to_x][to_y] is not None:
+            print("Invalid move: destination is not empty or out of bounds")
             return False
 
-        if self.board.grid[from_x][from_y] == player.player_id:
-            # Check if the move is valid (adjacent or flying phase)
-            if self.phase == 'flying' or self.is_adjacent(from_x, from_y, to_x, to_y):
-                if self.board.grid[to_x][to_y] is None:
-                    # Move the piece
-                    self.board.grid[from_x][from_y] = None
-                    self.board.grid[to_x][to_y] = player.player_id
-                    if self.check_for_mill(to_x, to_y, player):
-                        # In real game, you would allow player to remove an opponent's piece now
-                        pass
+        # Allow any move in the 'Flying' phase, or ensure the move is adjacent in the 'Moving' phase
+        if self.phase == 'flying' or self.board.is_adjacent(from_x, from_y, to_x, to_y):
+            # Move the piece
+            self.board.grid[to_x][to_y] = player.player_id
+            self.board.grid[from_x][from_y] = None  # Clear the old position
+            print(f"Moved piece from ({from_x}, {from_y}) to ({to_x}, {to_y})")
+            self.switch_turn()
+            return True
 
-                    # Switch turn to the other player
-                    self.switch_turn()
-
-                    return True
+        # If we get here, the move was invalid
+        print(f"Move from ({from_x}, {from_y}) to ({to_x}, {to_y}) failed: not adjacent")
         return False
 
     def remove_piece(self, x, y):

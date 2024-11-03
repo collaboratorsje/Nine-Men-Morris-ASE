@@ -1,0 +1,56 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`matches snapshot 1`] = `
+<form
+  onSubmit={[Function]}
+>
+  <h2>
+    Game Setup
+  </h2>
+  <div>
+    <label>
+      Who goes first: 
+    </label>
+    <select
+      onChange={[Function]}
+      value="player1"
+    >
+      <option
+        value="player1"
+      >
+        Player 1
+      </option>
+      <option
+        value="player2"
+      >
+        Player 2
+      </option>
+    </select>
+  </div>
+  <div>
+    <label>
+      Opponent: 
+    </label>
+    <select
+      onChange={[Function]}
+      value="human"
+    >
+      <option
+        value="human"
+      >
+        Human
+      </option>
+      <option
+        value="computer"
+      >
+        Computer
+      </option>
+    </select>
+  </div>
+  <button
+    type="submit"
+  >
+    Start Game
+  </button>
+</form>
+`;

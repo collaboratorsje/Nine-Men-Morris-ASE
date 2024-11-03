@@ -41,6 +41,41 @@ def place_piece():
     # Return the updated board state, current player, and game phase
     return jsonify(success=success, board=game_manager.get_board_state(), current_player=game_manager.get_current_player(), phase=phase)
 
+@app.route('/api/move', methods=['POST'])
+def move_piece():
+    """Move a piece on the board from one position to another."""
+    data = request.get_json()
+    print("Received data:", data)  # Log incoming data
+
+    # Check for required fields in data
+    if not data or 'from_x' not in data or 'from_y' not in data or 'to_x' not in data or 'to_y' not in data:
+        print("Invalid data received: missing coordinates")
+        return jsonify(success=False, error="Invalid data: coordinates are missing"), 400
+
+    from_x = data['from_x']
+    from_y = data['from_y']
+    to_x = data['to_x']
+    to_y = data['to_y']
+
+    # Attempt the move and capture success status
+    success = game_manager.move_piece(from_x, from_y, to_x, to_y)
+    phase = game_manager.determine_phase()
+    print(f"Attempted move from ({from_x}, {from_y}) to ({to_x}, {to_y}) - Success: {success}")
+    print("Updated Phase:", phase)
+
+    if not success:
+        # Log and return a clear error if the move was not successful
+        print(f"Move failed: piece cannot move from ({from_x}, {from_y}) to ({to_x}, {to_y})")
+        return jsonify(success=False, error="Invalid move: move failed due to game rules or invalid destination"), 400
+
+    # If move successful, return the updated board, player, and phase
+    return jsonify(
+        success=True,
+        board=game_manager.get_board_state(),
+        current_player=game_manager.get_current_player(),
+        phase=phase
+    )
+
 @app.route('/api/board', methods=['GET'])
 def get_board():
     phase = game_manager.determine_phase()
@@ -50,6 +85,7 @@ def get_board():
         current_player=game_manager.get_current_player(),
         phase=phase  # Include the game phase
     )
+
 
 @app.route('/api/reset', methods=['POST'])
 def reset_board():
@@ -64,4 +100,3 @@ def reset_board():
 
 if __name__ == '__main__':
     app.run(debug=True)
-

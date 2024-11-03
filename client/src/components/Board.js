@@ -11,59 +11,105 @@ const Board = ({ gameOptions }) => {
 
     const [player1Pieces, setPlayer1Pieces] = useState(9);  
     const [player2Pieces, setPlayer2Pieces] = useState(9);  
-    const [currentPlayer, setCurrentPlayer] = useState(null);  // Set null initially
-    const [phase, setPhase] = useState("placing");  // New state for the game phase
+    const [currentPlayer, setCurrentPlayer] = useState(null); 
+    const [phase, setPhase] = useState("placing"); 
+    const [selectedPiece, setSelectedPiece] = useState(null); 
 
     useEffect(() => {
-        // Fetch the board, player data, and game phase when the component loads
         fetch('/api/board')
             .then(res => res.json())
             .then(data => {
                 setPieces(mapBoardStateToPositions(data.board.grid));
                 setPlayer1Pieces(data.board.player1_pieces);
                 setPlayer2Pieces(data.board.player2_pieces);
-                setCurrentPlayer(data.current_player);  // Set current player from backend
-                setPhase(data.phase);  // Set the game phase from backend
+                setCurrentPlayer(data.current_player);
+                setPhase(data.phase);
             })
             .catch(error => console.error('Error fetching board state:', error));
     }, []);
 
     const placePiece = (position) => {
-        if (!pieces[position]) {
-            const [x, y] = mapPositionToCoordinates(position);
-    
-            fetch('/api/place', {
+        const [x, y] = mapPositionToCoordinates(position);
+        fetch('/api/place', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ x, y, player: currentPlayer })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                updateBoardState(data);
+            } else {
+                console.error('Failed to place piece');
+            }
+        })
+        .catch(error => console.error('Error placing piece:', error));
+    };
+
+    const movePiece = (position) => {
+        if (selectedPiece) {
+            const [fromX, fromY] = mapPositionToCoordinates(selectedPiece);
+            const [toX, toY] = mapPositionToCoordinates(position);
+            
+            fetch('/api/move', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ x, y, player: currentPlayer })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    from_x: fromX,
+                    from_y: fromY,
+                    to_x: toX,
+                    to_y: toY,
+                    player: currentPlayer
+                })
             })
             .then(res => res.json())
             .then(data => {
-                console.log("API Response:", data);  // Log the API response
-    
+                console.log('Response data:', data); // Log the full response for debugging
                 if (data.success) {
-                    const updatedPieces = mapBoardStateToPositions(data.board.grid);
-                    setPieces(updatedPieces);
-                    setPlayer1Pieces(data.board.player1_pieces);
-                    setPlayer2Pieces(data.board.player2_pieces);
-                    setCurrentPlayer(data.current_player);
-                    setPhase(data.phase);  // Update the game phase from the backend
+                    updateBoardState(data);
+                    setSelectedPiece(null); // Clear selection after moving
                 } else {
-                    console.error('Failed to place piece');
+                    console.error('Failed to move piece:', data.error); // Log the exact error
+                    alert(`Failed to move piece: ${data.error}`);
+                    setSelectedPiece(null); // Clear selection to allow picking a different piece
                 }
             })
-            .catch(error => console.error('Error placing piece:', error));
+            .catch(error => {
+                console.error('Error moving piece:', error);
+                alert('Error moving piece: An unexpected error occurred');
+            });
+        } else {
+            // Select a piece to move if clicked on a piece belonging to the current player
+            if (pieces[position] === currentPlayer) {
+                setSelectedPiece(position);
+            }
         }
-    };    
+    };
+    
+
+    const handleClick = (position) => {
+        if (phase === "Placing") {
+            if (!pieces[position]) {
+                placePiece(position);
+            }
+        } else if (phase === "Moving") {
+            movePiece(position);
+        }
+    };
+
+    const updateBoardState = (data) => {
+        const updatedPieces = mapBoardStateToPositions(data.board.grid);
+        setPieces(updatedPieces);
+        setPlayer1Pieces(data.board.player1_pieces);
+        setPlayer2Pieces(data.board.player2_pieces);
+        setCurrentPlayer(data.current_player);
+        setPhase(data.phase);
+    };
 
     const resetBoard = () => {
         fetch('/api/reset', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
+            headers: { 'Content-Type': 'application/json' },
         })
         .then(res => res.json())
         .then(data => {
@@ -71,8 +117,8 @@ const Board = ({ gameOptions }) => {
                 setPieces(mapBoardStateToPositions(data.board.grid));
                 setPlayer1Pieces(data.board.player1_pieces);
                 setPlayer2Pieces(data.board.player2_pieces);
-                setCurrentPlayer(data.current_player);  // Set to starting player after reset
-                setPhase(data.phase);  // Reset to initial game phase
+                setCurrentPlayer(data.current_player);
+                setPhase(data.phase);
             }
         })
         .catch(error => console.error('Error resetting the board:', error));
@@ -102,7 +148,6 @@ const Board = ({ gameOptions }) => {
 
     return (
         <div className="board-container">
-            {/* Display player 1's remaining pieces */}
             <div className="player-info">
                 <h3>Player 1 (White)</h3>
                 <p>Remaining pieces: {player1Pieces}</p>
@@ -112,8 +157,8 @@ const Board = ({ gameOptions }) => {
                 {Object.keys(pieces).map((position) => (
                     <div 
                         key={position}
-                        className={`spot ${position} ${pieces[position] ? 'occupied' : ''}`}
-                        onClick={() => placePiece(position)}
+                        className={`spot ${position} ${pieces[position] ? 'occupied' : ''} ${selectedPiece === position ? 'selected' : ''}`}
+                        onClick={() => handleClick(position)} // Call handleClick instead
                     >
                         {pieces[position] && (
                             <div className={`piece ${pieces[position] === 1 ? 'white' : 'black'}`}></div>
@@ -122,14 +167,12 @@ const Board = ({ gameOptions }) => {
                 ))}
             </div>
 
-            {/* Display player 2's remaining pieces */}
             <div className="player-info">
                 <h3>Player 2 (Black)</h3>
                 <p>Remaining pieces: {player2Pieces}</p>
             </div>
 
-            {/* Current turn and phase */}
-            <p>Current Turn: Player {currentPlayer ? currentPlayer : '...'}</p>
+            <p>Current Turn: Player {currentPlayer || '...'}</p>
             <p>Game Phase: {phase || "Loading..."}</p>
             <button onClick={resetBoard}>Reset Board</button>
         </div>
@@ -137,7 +180,4 @@ const Board = ({ gameOptions }) => {
 };
 
 export default Board;
-
-
-
 

@@ -9,14 +9,19 @@ const Game = () => {
     const startGame = (options) => {
         console.log('Starting game with options:', options);
     
-        // Reset the board in the backend before starting a new game
         fetch('/api/reset', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
         })
-        .then(res => res.json())
+        .then(res => {
+            console.log('Response:', res);
+            if (!res.ok) {
+                throw new Error('Network response was not ok ' + res.statusText);
+            }
+            return res.json();
+        })
         .then(() => {
             setGameOptions(options);  // Store the game setup options
             setGameStarted(true);     // Mark the game as started
@@ -47,5 +52,4 @@ const Game = () => {
 };
 
 export default Game;
-
 
