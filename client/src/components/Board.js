@@ -9,11 +9,12 @@ const Board = ({ gameOptions }) => {
         'b6': null, 'd6': null, 'f6': null, 'a7': null, 'd7': null, 'g7': null
     });
 
-    const [player1Pieces, setPlayer1Pieces] = useState(9);  
-    const [player2Pieces, setPlayer2Pieces] = useState(9);  
-    const [currentPlayer, setCurrentPlayer] = useState(null); 
-    const [phase, setPhase] = useState("placing"); 
-    const [selectedPiece, setSelectedPiece] = useState(null); 
+    const [player1Pieces, setPlayer1Pieces] = useState(9);
+    const [player2Pieces, setPlayer2Pieces] = useState(9);
+    const [currentPlayer, setCurrentPlayer] = useState(null);
+    const [phase, setPhase] = useState("placing");
+    const [selectedPiece, setSelectedPiece] = useState(null);
+    const [millFormed, setMillFormed] = useState(false); // New state for mill formation
 
     useEffect(() => {
         fetch('/api/board')
@@ -33,24 +34,67 @@ const Board = ({ gameOptions }) => {
         fetch('/api/place', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ x, y, player: currentPlayer })
+            body: JSON.stringify({ x, y })
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
                 updateBoardState(data);
+
+                if (data.mill_formed) {
+                    setMillFormed(true); // Set millFormed to true
+                    alert(data.message); // Notify the player about the mill
+                }
             } else {
-                console.error('Failed to place piece');
+                console.error('Failed to place piece:', data.message);
+                alert(data.message);
             }
         })
         .catch(error => console.error('Error placing piece:', error));
+    };
+
+    const removePiece = (position) => {
+        const [x, y] = mapPositionToCoordinates(position);
+        fetch('/api/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ x, y })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                updateBoardState(data);
+                setMillFormed(false); // Reset millFormed after removal
+            } else {
+                console.error('Failed to remove piece:', data.message);
+                alert(data.message);
+            }
+        })
+        .catch(error => console.error('Error removing piece:', error));
+    };
+
+    const handleClick = (position) => {
+        if (millFormed) {
+            // Handle removing an opponent's piece
+            if (pieces[position] && pieces[position] !== currentPlayer) {
+                removePiece(position);
+            } else {
+                alert("You must select an opponent's piece to remove.");
+            }
+        } else if (phase === "placing") {
+            if (!pieces[position]) {
+                placePiece(position);
+            }
+        } else if (phase === "moving") {
+            movePiece(position);
+        }
     };
 
     const movePiece = (position) => {
         if (selectedPiece) {
             const [fromX, fromY] = mapPositionToCoordinates(selectedPiece);
             const [toX, toY] = mapPositionToCoordinates(position);
-            
+
             fetch('/api/move', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -58,42 +102,28 @@ const Board = ({ gameOptions }) => {
                     from_x: fromX,
                     from_y: fromY,
                     to_x: toX,
-                    to_y: toY,
-                    player: currentPlayer
+                    to_y: toY
                 })
             })
             .then(res => res.json())
             .then(data => {
-                console.log('Response data:', data); // Log the full response for debugging
                 if (data.success) {
                     updateBoardState(data);
                     setSelectedPiece(null); // Clear selection after moving
                 } else {
-                    console.error('Failed to move piece:', data.error); // Log the exact error
-                    alert(`Failed to move piece: ${data.error}`);
-                    setSelectedPiece(null); // Clear selection to allow picking a different piece
+                    console.error('Failed to move piece:', data.error);
+                    alert(data.error);
+                    setSelectedPiece(null);
                 }
             })
             .catch(error => {
                 console.error('Error moving piece:', error);
-                alert('Error moving piece: An unexpected error occurred');
+                alert('An unexpected error occurred');
             });
         } else {
-            // Select a piece to move if clicked on a piece belonging to the current player
             if (pieces[position] === currentPlayer) {
                 setSelectedPiece(position);
             }
-        }
-    };
-    
-
-    const handleClick = (position) => {
-        if (phase === "placing") {
-            if (!pieces[position]) {
-                placePiece(position);
-            }
-        } else if (phase === "moving") {
-            movePiece(position);
         }
     };
 
@@ -119,6 +149,7 @@ const Board = ({ gameOptions }) => {
                 setPlayer2Pieces(data.board.player2_pieces);
                 setCurrentPlayer(data.current_player);
                 setPhase(data.phase);
+                setMillFormed(false); // Reset millFormed
             }
         })
         .catch(error => console.error('Error resetting the board:', error));
@@ -158,7 +189,7 @@ const Board = ({ gameOptions }) => {
                     <div 
                         key={position}
                         className={`spot ${position} ${pieces[position] ? 'occupied' : ''} ${selectedPiece === position ? 'selected' : ''}`}
-                        onClick={() => handleClick(position)} // Call handleClick instead
+                        onClick={() => handleClick(position)}
                     >
                         {pieces[position] && (
                             <div className={`piece ${pieces[position] === 1 ? 'white' : 'black'}`}></div>
