@@ -64,17 +64,22 @@ def move_piece():
     to_x = data['to_x']
     to_y = data['to_y']
 
-    success = game_manager.move_piece(from_x, from_y, to_x, to_y)
+    result = game_manager.move_piece(from_x, from_y, to_x, to_y)
+    success = result.get("success", False)
+    mill_formed = result.get("mill_formed", False)
+    message = result.get("message", "")
+
     phase = game_manager.phase
     print(f"Attempted move from ({from_x}, {from_y}) to ({to_x}, {to_y}) - Success: {success}")
     print("Updated Phase:", phase)
 
     if not success:
-        print(f"Move failed: piece cannot move from ({from_x}, {from_y}) to ({to_x}, {to_y})")
-        return jsonify(success=False, error="Invalid move: move failed due to game rules or invalid destination"), 400
+        return jsonify(success=False, error=message), 400
 
     return jsonify(
-        success=True,
+        success=success,
+        mill_formed=mill_formed,
+        message=message,
         board=game_manager.get_board_state(),
         current_player=game_manager.get_current_player(),
         phase=phase

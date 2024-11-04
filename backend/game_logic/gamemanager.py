@@ -59,21 +59,41 @@ class GameManager:
 
     def move_piece(self, from_x, from_y, to_x, to_y):
         """Move a piece on the board with adjacency checks for the 'Moving' phase."""
-        player = self.current_player
-
         if not self.board.is_valid_position(to_x, to_y) or self.board.grid[to_x][to_y] is not None:
-            print("Invalid move: destination is not empty or out of bounds")
-            return False
+            return {"success": False, "message": "Invalid move: destination is occupied or out of bounds"}
 
+        # Check if the move is valid (adjacent or flying)
         if self.phase == 'flying' or self.board.is_adjacent(from_x, from_y, to_x, to_y):
-            self.board.grid[to_x][to_y] = player.player_id
+            # Move the piece
+            self.board.grid[to_x][to_y] = self.current_player.player_id
             self.board.grid[from_x][from_y] = None
-            print(f"Moved piece from ({from_x}, {from_y}) to ({to_x}, {to_y})")
-            self.switch_turn()
-            return True
 
-        print(f"Move from ({from_x}, {from_y}) to ({to_x}, {to_y}) failed: not adjacent")
-        return False
+            # Check if moving the piece forms a mill
+            mill_formed = self.board.check_for_mill(to_x, to_y, self.current_player)
+            if mill_formed:
+                self.waiting_for_removal = True
+                return {
+                    "success": True,
+                    "mill_formed": True,
+                    "board": self.get_board_state(),
+                    "current_player": self.get_current_player(),
+                    "phase": self.phase,
+                    "message": "Mill formed! Remove an opponent's piece."
+                }
+
+            # If no mill is formed, switch turns
+            self.switch_turn()
+            self.phase = self.determine_phase()
+
+            return {
+                "success": True,
+                "mill_formed": False,
+                "board": self.get_board_state(),
+                "current_player": self.get_current_player(),
+                "phase": self.phase
+            }
+
+        return {"success": False, "message": "Invalid move: move is not adjacent"}
 
     def remove_piece(self, x, y):
         """Remove an opponent's piece from the board."""
@@ -85,10 +105,19 @@ class GameManager:
         if self.board.grid[x][y] != opponent.player_id:
             return {"success": False, "message": "Invalid removal: You can only remove the opponent's piece."}
 
-        if self.board.check_for_mill(x, y, opponent) and not self.all_pieces_in_mills(opponent):
-            return {"success": False, "message": "Cannot remove a piece that is part of a mill unless all opponent's pieces are in mills."}
+        # Check if the piece to be removed is part of a mill
+        if self.board.check_for_mill(x, y, opponent):
+            if not self.all_pieces_in_mills(opponent):
+                print(f"Piece at ({x}, {y}) is part of a mill, and not all opponent's pieces are in mills.")
+                return {"success": False, "message": "Cannot remove a piece that is part of a mill unless all opponent's pieces are in mills."}
 
+        # Remove the piece from the board
         self.board.grid[x][y] = None
+
+        # Remove the piece from the opponent's placed_pieces
+        if (x, y) in opponent.placed_pieces:
+            opponent.placed_pieces.remove((x, y))
+
         opponent.remove_piece((x, y))
         self.waiting_for_removal = False
         self.phase = self.determine_phase()
@@ -126,7 +155,10 @@ class GameManager:
 
     def all_pieces_in_mills(self, player):
         """Check if all of the player's pieces are in mills."""
+        # Check all placed pieces to see if they are part of a mill
         for x, y in player.placed_pieces:
             if not self.board.check_for_mill(x, y, player):
+                print(f"Piece at ({x}, {y}) is not in a mill.")
                 return False
+        print("All pieces are in mills.")
         return True

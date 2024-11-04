@@ -94,7 +94,7 @@ const Board = ({ gameOptions }) => {
         if (selectedPiece) {
             const [fromX, fromY] = mapPositionToCoordinates(selectedPiece);
             const [toX, toY] = mapPositionToCoordinates(position);
-
+    
             fetch('/api/move', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -109,6 +109,12 @@ const Board = ({ gameOptions }) => {
             .then(data => {
                 if (data.success) {
                     updateBoardState(data);
+    
+                    if (data.mill_formed) {
+                        setMillFormed(true); // Set millFormed to true if a mill is formed
+                        alert(data.message); // Notify the player about the mill
+                    }
+    
                     setSelectedPiece(null); // Clear selection after moving
                 } else {
                     console.error('Failed to move piece:', data.error);
