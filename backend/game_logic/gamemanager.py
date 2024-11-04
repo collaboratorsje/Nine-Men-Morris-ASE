@@ -30,7 +30,7 @@ class GameManager:
         if self.board.is_valid_position(x, y) and self.board.grid[x][y] is None:
             if player.place_piece((x, y)):  # Place the piece for the current player
                 self.board.grid[x][y] = player.player_id
-                if self.check_for_mill(x, y, player):
+                if self.board.check_for_mill(x, y, player):
                     # In the real game, you would allow player to remove an opponent's piece now
                     pass
 
@@ -132,8 +132,8 @@ class GameManager:
     def determine_phase(self):
             """Determine the current phase of the game."""
             if self.player1.pieces > 0 or self.player2.pieces > 0:
-                return "Placing"
+                return "placing"
             elif self.get_pieces_on_board(1) == 3 or self.get_pieces_on_board(2) == 3:
-                return "Flying"
+                return "flying"
             else:
-                return "Moving"
+                return "moving"

@@ -88,11 +88,11 @@ const Board = ({ gameOptions }) => {
     
 
     const handleClick = (position) => {
-        if (phase === "Placing") {
+        if (phase === "placing") {
             if (!pieces[position]) {
                 placePiece(position);
             }
-        } else if (phase === "Moving") {
+        } else if (phase === "moving") {
             movePiece(position);
         }
     };
