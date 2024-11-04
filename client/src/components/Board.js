@@ -180,4 +180,3 @@ const Board = ({ gameOptions }) => {
 };
 
 export default Board;
-

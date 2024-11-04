@@ -82,39 +82,36 @@ class GameManager:
         return False
 
     def remove_piece(self, x, y):
-        """Remove an opponent's piece."""
+        """Remove an opponent's piece from the board."""
         opponent = self.player1 if self.current_player == self.player2 else self.player2
 
-        if self.board.grid[x][y] == opponent.player_id:
-            if not self.check_for_mill(x, y, opponent) or self.all_pieces_in_mills(opponent):
-                self.board.grid[x][y] = None
-                opponent.remove_piece((x, y))
-                return True
-        return False
+        # Check if the selected piece belongs to the opponent
+        if self.board.grid[x][y] != opponent.player_id:
+            print("Invalid removal: You can only remove the opponent's piece.")
+            return False
 
-    def check_for_mill(self, x, y, player=None):
-        """Check if placing or moving a piece forms a mill (three in a row)."""
-        player_id = player.player_id if player else self.current_player.player_id
-        # Add logic to check if the move forms a mill (horizontal or vertical)
-        row = self.board.grid[x]
-        col = [self.board.grid[i][y] for i in range(self.board.size)]
-        return row.count(player_id) == 3 or col.count(player_id) == 3
+        # Check if the piece to be removed is not part of a mill
+        # Players should not remove pieces that are part of a mill unless all opponent's pieces are in mills
+        if self.board.check_for_mill(x, y, opponent) and not self.all_pieces_in_mills(opponent):
+            print("Invalid removal: Cannot remove a piece that is part of a mill unless all opponent's pieces are in mills.")
+            return False
 
-    def is_adjacent(self, from_x, from_y, to_x, to_y):
-        """Check if two positions are adjacent on the board."""
-        # Define adjacency rules (could be based on actual Nine Men's Morris graph)
-        adjacent_positions = {
-            (0, 0): [(0, 3), (3, 0)],
-            (0, 3): [(0, 0), (0, 6), (1, 3)],
-            # Add all adjacency rules for positions
-            # ...
-        }
-        return (to_x, to_y) in adjacent_positions.get((from_x, from_y), [])
+        # Remove the piece from the board
+        self.board.grid[x][y] = None
+        opponent.remove_piece((x, y))  # Update opponent's piece count
+        print(f"Removed opponent's piece at ({x}, {y})")
+
+        # Switch turn back to the current player after removal
+        self.switch_turn()
+
+        # Use determine_phase to dynamically set the game phase
+        self.phase = self.determine_phase()
+        return True
 
     def all_pieces_in_mills(self, player):
-        """Check if all of the opponent's pieces are in mills."""
-        for piece in player.placed_pieces:
-            if not self.check_for_mill(piece[0], piece[1], player):
+        """Check if all of the player's pieces are in mills."""
+        for x, y in player.placed_pieces:
+            if not self.board.check_for_mill(x, y, player):
                 return False
         return True
 
