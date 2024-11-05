@@ -5,7 +5,7 @@ class GameManager:
         self.player1 = player1
         self.player2 = player2
         self.current_player = self.get_player_by_id(starting_player_id)
-        self.phase = 'placing'
+        self.phase = self.determine_phase()
         self.waiting_for_removal = False
 
     def switch_turn(self):
@@ -137,7 +137,7 @@ class GameManager:
             'grid': self.board.grid,
             'player1_pieces': self.player1.pieces,
             'player2_pieces': self.player2.pieces,
-            'current_turn': self.current_player.player_id
+            'current_turn': self.current_player.player_id,
         }
 
     def get_pieces_on_board(self, player_id):

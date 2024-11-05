@@ -85,7 +85,7 @@ const Board = ({ gameOptions }) => {
             if (!pieces[position]) {
                 placePiece(position);
             }
-        } else if (phase === "moving") {
+        } else if (phase === "moving" || "flying") {
             movePiece(position);
         }
     };
@@ -149,7 +149,21 @@ const Board = ({ gameOptions }) => {
         })
         .then(res => res.json())
         .then(data => {
+            console.log("Reset states:", {
+                pieces: mapBoardStateToPositions(data.board.grid),
+                player1Pieces: data.board.player1_pieces,
+                player2Pieces: data.board.player2_pieces,
+                currentPlayer: data.current_player,
+                phase: data.phase
+            });            
             if (data.success) {
+                // Reset pieces to an empty state
+                const emptyBoard = {
+                    'a1': null, 'd1': null, 'g1': null, 'b2': null, 'd2': null, 'f2': null,
+                    'c3': null, 'd3': null, 'e3': null, 'a4': null, 'b4': null, 'c4': null,
+                    'e4': null, 'f4': null, 'g4': null, 'c5': null, 'd5': null, 'e5': null,
+                    'b6': null, 'd6': null, 'f6': null, 'a7': null, 'd7': null, 'g7': null
+                };
                 setPieces(mapBoardStateToPositions(data.board.grid));
                 setPlayer1Pieces(data.board.player1_pieces);
                 setPlayer2Pieces(data.board.player2_pieces);
@@ -210,7 +224,7 @@ const Board = ({ gameOptions }) => {
             </div>
 
             <p>Current Turn: Player {currentPlayer || '...'}</p>
-            <p>Game Phase: {phase || "Loading..."}</p>
+            <p>Game Phase: {phase || "placing"}</p>
             <button onClick={resetBoard}>Reset Board</button>
         </div>
     );

@@ -125,11 +125,18 @@ def get_board():
 def reset_board():
     """Reset the board to its initial empty state."""
     global game_manager
+    phase = game_manager.phase
+    print("Phase in reset:", phase)
     board = Board()
     player1 = Player(1, 9)
     player2 = Player(2, 9)
     game_manager = GameManager(board, player1, player2, game_manager.get_current_player())
-    return jsonify(success=True, board=game_manager.get_board_state(), current_player=game_manager.get_current_player())
+
+    return jsonify(
+        success=True, 
+        board=game_manager.get_board_state(), 
+        current_player=game_manager.get_current_player(), 
+        phase=phase)
 
 if __name__ == '__main__':
     app.run(debug=True)
