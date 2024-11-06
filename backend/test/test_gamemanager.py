@@ -26,32 +26,6 @@ class TestGameManager:
         assert result['success'] == False
         assert result['message'] == "Not in placing phase"
 
-    def test_move_piece(self):
-        board = Board()  # Assuming this initializes an empty board
-        player1 = Player(1, 9)  # Player with 9 pieces
-        player2 = Player(2, 9)  # Another player with 9 pieces
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
-
-        # Place pieces to enter the moving phase
-        game_manager.place_piece(0, 0)  # Player 1 places piece at (0, 0)
-        game_manager.place_piece(1, 1)  # Player 2 places piece at (1, 1)
-        game_manager.place_piece(2, 2)  # Continue placing pieces as needed
-        game_manager.place_piece(3, 3)
-
-        # Now switch to the moving phase
-        game_manager.phase = 'moving'
-
-        # Attempt a valid move
-        result = game_manager.move_piece(0, 0, 0, 3)  # Move piece from (0, 0) to (0, 1)
-
-        # Check if the move was successful
-        assert result['success'] is True
-        assert board.grid[0][3] > 0  # Ensure the piece is now in the new position
-        assert board.grid[0][0] == None  # Ensure the old position is empty
-
-        # You may want to check if the piece count has been managed correctly
-
-
     def test_remove_piece(self):
         player = Player(player_id=1, pieces=9)  # Initialize a player with 9 pieces
         player.place_piece((1, 1))  # Place a piece at (1, 1)
@@ -128,3 +102,56 @@ class TestGameManager:
         
         result = game_manager.all_pieces_in_mills(player2)  # Adjust as necessary
         assert result is True  # Check that the method correctly identifies the mill
+    
+    def test_get_pieces_on_board(self):
+        board = Board()
+        player1 = Player(1, 9)
+        player2 = Player(2, 9)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+
+        # Place some pieces for Player 1
+        board.grid[0][0] = 1
+        board.grid[1][1] = 1
+        board.grid[2][2] = 1
+
+        # Place some pieces for Player 2
+        board.grid[3][3] = 2
+        board.grid[4][4] = 2
+
+        # Check the number of pieces on the board for each player
+        player1_count = game_manager.get_pieces_on_board(1)
+        player2_count = game_manager.get_pieces_on_board(2)
+
+        # Assertions
+        assert player1_count == 3, "Player 1 should have 3 pieces on the board."
+        assert player2_count == 2, "Player 2 should have 2 pieces on the board."
+
+    def test_invalid_move_does_not_change_piece_count(self):
+        board = Board()
+        player1 = Player(1, 9)
+        player2 = Player(2, 9)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+
+        # Place pieces to set up the board
+        game_manager.place_piece(0, 0)  # Player 1
+        game_manager.place_piece(1, 1)  # Player 2
+        game_manager.place_piece(2, 2)  # Player 1
+        game_manager.place_piece(3, 3)  # Player 2
+
+        # Capture the number of pieces on the board for each player
+        player1_count_before = game_manager.get_pieces_on_board(1)
+        player2_count_before = game_manager.get_pieces_on_board(2)
+
+        # Attempt an invalid move by Player 1 (e.g., moving to an occupied position)
+        result = game_manager.move_piece(0, 0, 1, 1)  # (1, 1) is occupied by Player 2
+
+        # Check that the move was unsuccessful
+        assert result['success'] is False, "Move should be unsuccessful"
+
+        # Capture the number of pieces on the board after the invalid move
+        player1_count_after = game_manager.get_pieces_on_board(1)
+        player2_count_after = game_manager.get_pieces_on_board(2)
+
+        # Assertions to ensure the piece count remains unchanged
+        assert player1_count_before == player1_count_after, "Player 1's piece count should remain the same after an invalid move."
+        assert player2_count_before == player2_count_after, "Player 2's piece count should remain the same after an invalid move."

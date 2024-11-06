@@ -9,8 +9,12 @@ class GameManager:
         self.waiting_for_removal = False
 
     def switch_turn(self):
-        """Switch the current player after a successful move."""
-        self.current_player = self.player1 if self.current_player == self.player2 else self.player2
+            """Switch the current player after a successful move and check for game over."""
+            self.current_player = self.player1 if self.current_player == self.player2 else self.player2
+            # Check for game over at the start of the new player's turn
+            game_over_status = self.check_game_over()
+            if game_over_status["game_over"]:
+                print("Game Over:", game_over_status["message"])
 
     def get_current_player(self):
         """Return the ID of the current player."""
@@ -31,6 +35,7 @@ class GameManager:
         if self.board.is_valid_position(x, y) and self.board.grid[x][y] is None:
             if self.current_player.place_piece((x, y)):
                 self.board.grid[x][y] = self.current_player.player_id
+                self.current_player.placed_pieces.append((x, y))  # Add piece to placed_pieces
                 mill_formed = self.board.check_for_mill(x, y, self.current_player)
 
                 if mill_formed:
@@ -59,6 +64,17 @@ class GameManager:
 
     def move_piece(self, from_x, from_y, to_x, to_y):
         """Move a piece on the board with adjacency checks for the 'Moving' phase."""
+        # Check for game over before taking any action
+        game_over_status = self.check_game_over()
+        if game_over_status["game_over"]:
+            return {
+                "success": True,
+                "game_over": True,
+                "winner": game_over_status["winner"],
+                "message": game_over_status["message"],
+                "board": self.get_board_state()
+            }
+
         if not self.board.is_valid_position(to_x, to_y) or self.board.grid[to_x][to_y] is not None:
             return {"success": False, "message": "Invalid move: destination is occupied or out of bounds"}
 
@@ -67,6 +83,11 @@ class GameManager:
             # Move the piece
             self.board.grid[to_x][to_y] = self.current_player.player_id
             self.board.grid[from_x][from_y] = None
+
+            # Update the player's placed_pieces list
+            if (from_x, from_y) in self.current_player.placed_pieces:
+                self.current_player.placed_pieces.remove((from_x, from_y))
+            self.current_player.placed_pieces.append((to_x, to_y))
 
             # Check if moving the piece forms a mill
             mill_formed = self.board.check_for_mill(to_x, to_y, self.current_player)
@@ -97,6 +118,17 @@ class GameManager:
 
     def remove_piece(self, x, y):
         """Remove an opponent's piece from the board."""
+        # Check for game over before taking any action
+        game_over_status = self.check_game_over()
+        if game_over_status["game_over"]:
+            return {
+                "success": True,
+                "game_over": True,
+                "winner": game_over_status["winner"],
+                "message": game_over_status["message"],
+                "board": self.get_board_state()
+            }
+
         if not self.waiting_for_removal:
             return {"success": False, "message": "No mill formed. You cannot remove a piece now."}
 
@@ -108,7 +140,6 @@ class GameManager:
         # Check if the piece to be removed is part of a mill
         if self.board.check_for_mill(x, y, opponent):
             if not self.all_pieces_in_mills(opponent):
-                print(f"Piece at ({x}, {y}) is part of a mill, and not all opponent's pieces are in mills.")
                 return {"success": False, "message": "Cannot remove a piece that is part of a mill unless all opponent's pieces are in mills."}
 
         # Remove the piece from the board
@@ -162,3 +193,71 @@ class GameManager:
                 return False
         print("All pieces are in mills.")
         return True
+    
+    def has_valid_moves(self, player):
+        """Check if the player has any valid moves."""
+        if self.phase == 'flying':
+            # In the flying phase, check if there are any unoccupied valid positions
+            for x in range(len(self.board.grid)):
+                for y in range(len(self.board.grid[x])):
+                    if self.board.is_valid_position(x, y) and self.board.grid[x][y] is None:
+                        return True
+        else:
+            # In the moving phase, check for adjacent valid moves
+            for x in range(len(self.board.grid)):
+                for y in range(len(self.board.grid[x])):
+                    if self.board.grid[x][y] == player.player_id:
+                        # Check all possible adjacent positions for a valid move
+                        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                            nx, ny = x + dx, y + dy
+                            if self.board.is_valid_position(nx, ny) and self.board.grid[nx][ny] is None:
+                                return True
+        return False
+    
+    def check_game_over(self):
+        """Check if the game is over only during the moving or flying phase."""
+        if self.phase not in ['moving', 'flying']:
+            return {"game_over": False}
+
+        player1_pieces_on_board = self.get_pieces_on_board(1)
+        player2_pieces_on_board = self.get_pieces_on_board(2)
+
+        # Check if Player 1 has fewer than 3 pieces
+        if player1_pieces_on_board < 3:
+            print("Game Over: Player 2 wins! Player 1 has fewer than 3 pieces.")
+            return {
+                "game_over": True,
+                "winner": "Player 2",
+                "message": "Game Over! Player 1 has fewer than 3 pieces. Player 2 wins!"
+            }
+
+        # Check if Player 2 has fewer than 3 pieces
+        if player2_pieces_on_board < 3:
+            print("Game Over: Player 1 wins! Player 2 has fewer than 3 pieces.")
+            return {
+                "game_over": True,
+                "winner": "Player 1",
+                "message": "Game Over! Player 2 has fewer than 3 pieces. Player 1 wins!"
+            }
+
+        # Check if Player 1 has no valid moves
+        if not self.has_valid_moves(self.player1):
+            print("Game Over: Player 2 wins! Player 1 cannot make a valid move.")
+            return {
+                "game_over": True,
+                "winner": "Player 2",
+                "message": "Game Over! Player 1 cannot make a valid move. Player 2 wins!"
+            }
+
+        # Check if Player 2 has no valid moves
+        if not self.has_valid_moves(self.player2):
+            print("Game Over: Player 1 wins! Player 2 cannot make a valid move.")
+            return {
+                "game_over": True,
+                "winner": "Player 1",
+                "message": "Game Over! Player 2 cannot make a valid move. Player 1 wins!"
+            }
+
+        # If no game-over conditions are met, continue the game
+        return {"game_over": False}
+
