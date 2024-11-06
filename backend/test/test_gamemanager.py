@@ -155,3 +155,137 @@ class TestGameManager:
         # Assertions to ensure the piece count remains unchanged
         assert player1_count_before == player1_count_after, "Player 1's piece count should remain the same after an invalid move."
         assert player2_count_before == player2_count_after, "Player 2's piece count should remain the same after an invalid move."
+
+    def test_move_to_adjacent_valid_cell(self):
+        # Initialize board, players, and game manager
+        board = Board()
+        player1 = Player(1, 9)
+        player2 = Player(2, 9)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+
+        # Carefully place pieces for both players, alternating turns and avoiding mill formations
+        game_manager.place_piece(0, 0)  # Player 1
+        game_manager.place_piece(0, 3)  # Player 2
+        game_manager.place_piece(0, 6)  # Player 1
+        game_manager.place_piece(1, 1)  # Player 2
+        game_manager.place_piece(1, 5)  # Player 1
+        game_manager.place_piece(2, 3)  # Player 2
+        game_manager.place_piece(3, 2)  # Player 1
+        game_manager.place_piece(3, 4)  # Player 2
+        game_manager.place_piece(4, 2)  # Player 1
+        game_manager.place_piece(4, 4)  # Player 2
+        game_manager.place_piece(5, 1)  # Player 1
+        game_manager.place_piece(5, 5)  # Player 2
+        game_manager.place_piece(6, 0)  # Player 1
+        game_manager.place_piece(6, 6)  # Player 2
+        game_manager.place_piece(6, 3)  # Player 1
+        game_manager.place_piece(3, 6)  # Player 2
+
+        # Transition the game to the moving phase
+        game_manager.phase = 'moving'
+
+        # Ensure the game is not over before attempting the move
+        game_over_status = game_manager.check_game_over()
+        assert not game_over_status["game_over"], "The game should not be over before attempting the move"
+
+        # Attempt to move Player 1's piece from (0, 0) to (3, 0), an adjacent and valid empty cell
+        result = game_manager.move_piece(0, 0, 3, 0)
+
+        # Assert that the move is successful
+        assert result['success'] is True, "The move to an adjacent valid cell should be successful"
+        assert board.grid[0][0] is None, "The original cell should be empty after the move"
+        assert board.grid[3][0] == 1, "The piece should be in the new position"
+
+    def test_move_to_invalid_cell(self):
+        # Initialize board, players, and game manager
+        board = Board()
+        player1 = Player(1, 9)
+        player2 = Player(2, 9)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+
+        # Carefully place pieces for both players, alternating turns and avoiding mill formations
+        game_manager.place_piece(0, 0)  # Player 1
+        game_manager.place_piece(0, 3)  # Player 2
+        game_manager.place_piece(0, 6)  # Player 1
+        game_manager.place_piece(1, 1)  # Player 2
+        game_manager.place_piece(1, 5)  # Player 1
+        game_manager.place_piece(2, 3)  # Player 2
+        game_manager.place_piece(3, 2)  # Player 1
+        game_manager.place_piece(3, 4)  # Player 2
+        game_manager.place_piece(4, 2)  # Player 1
+        game_manager.place_piece(4, 4)  # Player 2
+        game_manager.place_piece(5, 1)  # Player 1
+        game_manager.place_piece(5, 5)  # Player 2
+        game_manager.place_piece(6, 0)  # Player 1
+        game_manager.place_piece(6, 6)  # Player 2
+        game_manager.place_piece(6, 3)  # Player 1
+        game_manager.place_piece(3, 6)  # Player 2
+
+        # Transition the game to the moving phase
+        game_manager.phase = 'moving'
+
+        # Attempt to move Player 1's piece from (0, 0) to (0, 3), an occupied cell
+        result = game_manager.move_piece(0, 0, 0, 3)
+
+        # Assert that the move fails
+        assert result['success'] is False, "The move to an occupied cell should fail"
+        assert result['message'] == "Invalid move: destination is occupied or out of bounds", "The error message should indicate an invalid move"
+        assert board.grid[0][0] == 1, "The original piece should remain in the same position"
+        assert board.grid[0][3] == 2, "The destination cell should still be occupied by Player 2's piece"
+
+    def test_move_to_any_vacant_cell_flying_phase(self):
+        # Initialize board, players, and game manager
+        board = Board()
+        player1 = Player(1, 3)  # Player 1 has only 3 pieces, entering the flying phase
+        player2 = Player(2, 9)  # Player 2 still has all 9 pieces
+        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+
+        # Simulate placing pieces to transition Player 1 to the flying phase
+        game_manager.place_piece(0, 0)  # Player 1
+        game_manager.place_piece(0, 3)  # Player 2
+        game_manager.place_piece(0, 6)  # Player 1
+        game_manager.place_piece(1, 1)  # Player 2
+        game_manager.place_piece(3, 0)  # Player 1
+        game_manager.place_piece(1, 5)  # Player 2
+        game_manager.place_piece(2, 3)  # Player 2
+        game_manager.place_piece(3, 4)  # Player 2
+
+        # Transition the game to the flying phase for Player 1
+        game_manager.phase = 'flying'
+
+        # Attempt to move Player 1's piece from (0, 0) to (4, 3), a valid vacant cell
+        result = game_manager.move_piece(0, 0, 4, 3)
+
+        # Assert that the move is successful
+        assert result['success'] is True, "The move to any vacant cell should be successful in the flying phase"
+        assert board.grid[0][0] is None, "The original cell should be empty after the move"
+        assert board.grid[4][3] == 1, "The piece should be in the new position"
+
+    def test_move_to_occupied_cell_flying_phase(self):
+        # Initialize board, players, and game manager
+        board = Board()
+        player1 = Player(1, 3)  # Player 1 has only 3 pieces, in the flying phase
+        player2 = Player(2, 9)  # Player 2 has all 9 pieces
+        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+
+        # Simulate placing pieces to transition Player 1 to the flying phase
+        game_manager.place_piece(0, 0)  # Player 1
+        game_manager.place_piece(0, 3)  # Player 2
+        game_manager.place_piece(0, 6)  # Player 1
+        game_manager.place_piece(1, 1)  # Player 2
+        game_manager.place_piece(3, 0)  # Player 1
+        game_manager.place_piece(1, 5)  # Player 2
+        game_manager.place_piece(2, 3)  # Player 2
+        game_manager.place_piece(3, 4)  # Player 2
+
+        # Transition the game to the flying phase for Player 1
+        game_manager.phase = 'flying'
+
+        # Attempt to move Player 1's piece from (0, 0) to (0, 3), an occupied cell
+        result = game_manager.move_piece(0, 0, 0, 3)
+
+        # Assert that the move fails
+        assert result['success'] is False, "The move to an occupied cell should fail in the flying phase"
+        assert result['message'] == "Invalid move: destination is occupied or out of bounds", "The error message should indicate an invalid move"
+        assert board.grid[0][0] == 1, "The original piece should remain in the same position"
+        assert board.grid[0][3] == 2, "The destination cell should remain occupied by Player 2's piece"

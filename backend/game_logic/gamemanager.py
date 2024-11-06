@@ -197,20 +197,19 @@ class GameManager:
     def has_valid_moves(self, player):
         """Check if the player has any valid moves."""
         if self.phase == 'flying':
-            # In the flying phase, check if there are any unoccupied valid positions
+            # In the flying phase, the player can move to any unoccupied valid position
             for x in range(len(self.board.grid)):
                 for y in range(len(self.board.grid[x])):
                     if self.board.is_valid_position(x, y) and self.board.grid[x][y] is None:
                         return True
         else:
-            # In the moving phase, check for adjacent valid moves
+            # In the moving phase, check for valid adjacent moves
             for x in range(len(self.board.grid)):
                 for y in range(len(self.board.grid[x])):
                     if self.board.grid[x][y] == player.player_id:
-                        # Check all possible adjacent positions for a valid move
-                        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                            nx, ny = x + dx, y + dy
-                            if self.board.is_valid_position(nx, ny) and self.board.grid[nx][ny] is None:
+                        # Use the Board's adjacency logic to check for valid moves
+                        for nx, ny in self.board.adjacent_positions.get((x, y), []):
+                            if self.board.grid[nx][ny] is None:
                                 return True
         return False
     
