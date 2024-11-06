@@ -53,5 +53,3 @@ const GameSetup = ({ startGame }) => {
 };
 
 export default GameSetup;
-
-

@@ -289,3 +289,76 @@ class TestGameManager:
         assert result['message'] == "Invalid move: destination is occupied or out of bounds", "The error message should indicate an invalid move"
         assert board.grid[0][0] == 1, "The original piece should remain in the same position"
         assert board.grid[0][3] == 2, "The destination cell should remain occupied by Player 2's piece"
+
+    def test_determine_phase_placing(self):
+        board = Board()
+        player1 = Player(1, 9)
+        player2 = Player(2, 9)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+
+        # Both players have pieces left to place, so the phase should be "placing"
+        assert game_manager.determine_phase() == "placing", "Phase should be 'placing' when both players have pieces to place."
+
+    def test_determine_phase_moving(self):
+        board = Board()
+        player1 = Player(1, 0)  # All pieces are placed for Player 1
+        player2 = Player(2, 0)  # All pieces are placed for Player 2
+        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+
+        # Place more than 3 pieces on the board for both players
+        board.grid[0][0] = 1
+        board.grid[0][3] = 1
+        board.grid[0][6] = 1
+        board.grid[3][0] = 1
+        board.grid[3][4] = 1  # Player 1 now has 5 pieces
+
+        board.grid[1][1] = 2
+        board.grid[1][3] = 2
+        board.grid[1][5] = 2
+        board.grid[4][2] = 2
+        board.grid[4][4] = 2  # Player 2 now has 5 pieces
+
+        # Now both players have more than 3 pieces on the board, so the phase should be "moving"
+        assert game_manager.determine_phase() == "moving", "Phase should be 'moving' when all pieces are placed and both players have more than 3 pieces on the board."
+
+    def test_determine_phase_flying(self):
+        board = Board()
+        player1 = Player(1, 0)  # All pieces are placed for Player 1
+        player2 = Player(2, 0)  # All pieces are placed for Player 2
+        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+
+        # Simulate Player 1 having only 3 pieces left on the board
+        board.grid[0][0] = 1
+        board.grid[0][3] = 1
+        board.grid[0][6] = 1
+
+        # Player 2 still has more than 3 pieces
+        board.grid[1][1] = 2
+        board.grid[1][3] = 2
+        board.grid[1][5] = 2
+        board.grid[2][2] = 2
+
+        # Player 1 has only 3 pieces, so the phase should be "flying"
+        assert game_manager.determine_phase() == "flying", "Phase should be 'flying' when a player has only 3 pieces on the board."
+
+    def test_all_pieces_in_mills(self):
+        # Initialize board, players, and game manager
+        board = Board()
+        player1 = Player(1, 0)  # Player 1 has placed all pieces
+        player2 = Player(2, 0)  # Player 2 has placed all pieces
+        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+
+        # Simulate placing pieces to form mills for Player 1
+        player1.placed_pieces = [(0, 0), (0, 3), (0, 6)]  # This forms a mill
+        board.grid[0][0] = 1
+        board.grid[0][3] = 1
+        board.grid[0][6] = 1
+
+        # Check if all pieces for Player 1 are in mills
+        result = game_manager.all_pieces_in_mills(player1)
+        assert result is True, "All Player 1's pieces should be in mills"
+
+        # Simulate placing pieces where not all are part of a mill for Player 2
+        player2.placed_pieces = [(1, 1), (1, 3), (4, 2)]  # Not all form a mill
+        board.grid[1][1] = 2
+        board.grid[1]

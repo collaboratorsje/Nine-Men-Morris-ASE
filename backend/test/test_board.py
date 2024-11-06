@@ -48,6 +48,23 @@ def test_check_for_mill(board):
     board.grid[1][5] = None  # One piece missing
     assert board.check_for_mill(1, 3, player) is False
 
+def test_check_for_mill_false(board):
+    class MockPlayer:
+        def __init__(self, player_id):
+            self.player_id = player_id
+
+    player = MockPlayer(player_id=1)
+
+    # Place pieces that do not form a mill
+    board.grid[0][0] = 1  # Top left
+    board.grid[1][3] = 1  # Middle of the second row
+    board.grid[5][5] = 1  # Bottom right of the sixth row
+
+    # Check that no mill is detected at each of these positions
+    assert board.check_for_mill(0, 0, player) is False, "No mill should be detected at (0, 0)"
+    assert board.check_for_mill(1, 3, player) is False, "No mill should be detected at (1, 3)"
+    assert board.check_for_mill(5, 5, player) is False, "No mill should be detected at (5, 5)"
+
 def test_display(board, capsys):
     # Setup some pieces on the board
     board.grid[0][0] = "X"

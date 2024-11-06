@@ -259,4 +259,3 @@ class GameManager:
 
         # If no game-over conditions are met, continue the game
         return {"game_over": False}
-
