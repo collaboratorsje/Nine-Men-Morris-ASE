@@ -85,10 +85,14 @@ const Board = ({ gameOptions }) => {
             if (!pieces[position]) {
                 placePiece(position);
             }
-        } else if (phase === "moving" || "flying") {
-            movePiece(position);
+        } else if (phase === "moving") {
+            if (selectedPiece) {
+                movePiece(position);
+            } else if (pieces[position] === currentPlayer) {
+                setSelectedPiece(position); // Select the piece to move
+            }
         }
-    };
+    };    
 
     const movePiece = (position) => {
         if (selectedPiece) {
@@ -199,35 +203,64 @@ const Board = ({ gameOptions }) => {
 
     return (
         <div className="board-container">
+            {/* Player 1 Info */}
             <div className="player-info">
                 <h3>Player 1 (White)</h3>
                 <p>Remaining pieces: {player1Pieces}</p>
             </div>
-
+    
+            {/* Board */}
             <div className="board">
-                {Object.keys(pieces).map((position) => (
-                    <div 
-                        key={position}
-                        className={`spot ${position} ${pieces[position] ? 'occupied' : ''} ${selectedPiece === position ? 'selected' : ''}`}
-                        onClick={() => handleClick(position)}
-                    >
-                        {pieces[position] && (
-                            <div className={`piece ${pieces[position] === 1 ? 'white' : 'black'}`}></div>
-                        )}
-                    </div>
-                ))}
+                {Object.keys(pieces).map((position) => {
+                    const isOwnedByCurrentPlayer = pieces[position] === currentPlayer;
+                    const isSelectable = 
+                        phase === "moving" && 
+                        selectedPiece === null && 
+                        isOwnedByCurrentPlayer;
+    
+                    const isEmpty = !pieces[position];
+                    const hoverCursor =
+                        isEmpty
+                            ? "pointer" // Allow hovering over empty spots
+                            : isSelectable
+                            ? "pointer" // Allow selecting pieces to move
+                            : "not-allowed"; // Prevent interaction with non-selectable pieces
+                    
+                    return (
+                        <div
+                            key={position}
+                            className={`spot ${position} ${pieces[position] ? 'occupied' : ''} ${
+                                isSelectable ? 'selectable' : ''
+                            } ${selectedPiece === position ? 'selected' : ''}`}
+                            style={{ cursor: hoverCursor }}
+                            onClick={() => handleClick(position)}
+                        >
+                            {pieces[position] && (
+                                <div
+                                    className={`piece ${
+                                        pieces[position] === 1 ? 'white' : 'black'
+                                    }`}
+                                ></div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
-
+    
+            {/* Player 2 Info */}
             <div className="player-info">
                 <h3>Player 2 (Black)</h3>
                 <p>Remaining pieces: {player2Pieces}</p>
             </div>
-
+    
+            {/* Current Turn and Phase */}
             <p>Current Turn: Player {currentPlayer || '...'}</p>
             <p>Game Phase: {phase || "placing"}</p>
+    
+            {/* Reset Button */}
             <button onClick={resetBoard}>Reset Board</button>
         </div>
-    );
+    );     
 };
 
 export default Board;

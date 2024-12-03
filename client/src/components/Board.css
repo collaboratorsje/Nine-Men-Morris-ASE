@@ -1,26 +1,42 @@
 .board {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);  /* 7 columns */
-    grid-template-rows: repeat(7, 1fr);  /* 7 rows */
+    grid-template-columns: repeat(7, 1fr); /* 7 columns */
+    grid-template-rows: repeat(7, 1fr); /* 7 rows */
     width: 400px;
     height: 400px;
-    background-color: #f9f2d4;  /* Background for the board */
+    background-color: #f9f2d4; /* Background for the board */
     position: relative;
 }
 
 .spot {
     width: 50px;
     height: 50px;
-    background-color: rgba(0, 0, 0, 0.1);  /* Light background */
+    background-color: rgba(0, 0, 0, 0.1); /* Light background */
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    cursor: pointer;
+    cursor: not-allowed; /* Default cursor for non-selectable spots */
 }
 
 .spot.occupied {
-    cursor: not-allowed;  /* Prevents clicking on occupied spots */
+    cursor: not-allowed; /* Prevents clicking on occupied spots */
+}
+
+.spot.occupied.current-player {
+    cursor: pointer; /* Allow current player to select pieces in "moving" phase */
+}
+
+.spot.selected {
+    outline: 2px solid blue; /* Highlight selected piece */
+}
+
+.spot.selectable:hover {
+    cursor: pointer; /* Valid pieces show pointer cursor */
+}
+
+.spot:not(.selectable):hover {
+    cursor: not-allowed; /* Invalid pieces show cancel sign */
 }
 
 .piece {
@@ -30,14 +46,14 @@
 }
 
 .piece.white {
-    background-color: white;  /* Player 1 piece */
+    background-color: white; /* Player 1 piece */
 }
 
 .piece.black {
-    background-color: black;  /* Player 2 piece */
+    background-color: black; /* Player 2 piece */
 }
 
-
+/* Position-specific grid areas */
 .spot.a1 { grid-area: 1 / 1; }
 .spot.d1 { grid-area: 1 / 4; }
 .spot.g1 { grid-area: 1 / 7; }
