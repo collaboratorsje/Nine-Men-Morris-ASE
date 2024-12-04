@@ -82,17 +82,23 @@ const Board = ({ gameOptions }) => {
                 alert("You must select an opponent's piece to remove.");
             }
         } else if (phase === "placing") {
+            // Handle placing a piece
             if (!pieces[position]) {
                 placePiece(position);
             }
-        } else if (phase === "moving") {
+        } else if (phase === "moving" || phase === "flying") {
+            // Handle moving or flying phases
             if (selectedPiece) {
+                // If a piece is already selected, attempt to move it
                 movePiece(position);
             } else if (pieces[position] === currentPlayer) {
-                setSelectedPiece(position); // Select the piece to move
+                // Select the piece to move
+                setSelectedPiece(position);
+            } else {
+                alert("You can only select your own pieces to move.");
             }
         }
-    };    
+    };       
 
     const movePiece = (position) => {
         if (selectedPiece) {
