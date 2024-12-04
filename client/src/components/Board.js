@@ -24,6 +24,8 @@ const Board = ({ gameOptions }) => {
         { type: 'vertical', id: 'v4', start: [1, 1], end: [5, 1] },
         { type: 'vertical', id: 'v5', start: [0, 0], end: [6, 0] },
         { type: 'vertical', id: 'v6', start: [1, 1], end: [5, 1] },
+        { type: 'vertical', id: 'v7', start: [1, 1], end: [5, 1] },
+        { type: 'vertical', id: 'v8', start: [1, 1], end: [5, 1] },
         { type: 'diagonal', id: 'd1', start: [0, 0], end: [6, 6] },
         { type: 'diagonal', id: 'd2', start: [0, 6], end: [6, 0] },
         { type: 'diagonal', id: 'd3', start: [6, 6], end: [3, 3] },
