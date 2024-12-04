@@ -92,10 +92,6 @@
     cursor: not-allowed; /* Prevents clicking on occupied spots */
 }
 
-.spot.occupied {
-    cursor: not-allowed; /* Prevents clicking on occupied spots */
-}
-
 .spot.occupied.current-player {
     cursor: pointer; /* Allow current player to select pieces in "moving" phase */
 }
@@ -120,11 +116,11 @@
 }
 
 .piece.white {
-    background-color: white;
+    background-color: white; /* Player 1 piece */
 }
 
 .piece.black {
-    background-color: black;
+    background-color: black; /* Player 2 piece */
 }
 
 .notification {
@@ -146,6 +142,33 @@
     background-color: #4caf50; /* Green */
     color: white;
 }
+
+.notification.error {
+    background-color: #f44336; /* Red */
+    color: white;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(-10px); }
+    10% { opacity: 1; transform: translateY(0); }
+    90% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-10px); }
+}
+
+.notification.game-over {
+    background-color: #ff9800; /* Orange */
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 20px 40px;
+    border-radius: 10px;
+    animation: fadeInOut 3s ease-in-out;
+}
+
+/* Position-specific grid areas */
+.spot.a1 { grid-area: 1 / 1; }
+.spot.d1 { grid-area: 1 / 4; }
+.spot.g1 { grid-area: 1 / 7; }
 
 .notification.error {
     background-color: #f44336; /* Red */
@@ -200,3 +223,6 @@
 .spot.d7 { z-index: 2 ;grid-area: 7 / 4; }
 .spot.g7 { z-index: 2 ;grid-area: 7 / 7; }
 
+.spot.a7 { z-index: 2 ;grid-area: 7 / 1; }
+.spot.d7 { z-index: 2 ;grid-area: 7 / 4; }
+.spot.g7 { z-index: 2 ;grid-area: 7 / 7; }
