@@ -9,12 +9,35 @@ const Board = ({ gameOptions }) => {
         'b6': null, 'd6': null, 'f6': null, 'a7': null, 'd7': null, 'g7': null
     });
 
+    const lines = [
+        { type: 'horizontal', id: 'h1', start: [0, 0], end: [0, 6] },
+        { type: 'horizontal', id: 'h2', start: [1, 1], end: [1, 5] },
+        { type: 'horizontal', id: 'h3', start: [3, 0], end: [3, 6] },
+        { type: 'horizontal', id: 'h4' },
+        { type: 'horizontal', id: 'h5' },
+        { type: 'horizontal', id: 'h6' },
+        { type: 'horizontal', id: 'h7' },
+        { type: 'horizontal', id: 'h8' },       
+        { type: 'vertical', id: 'v1', start: [0, 0], end: [6, 0] },
+        { type: 'vertical', id: 'v2', start: [1, 1], end: [5, 1] },
+        { type: 'vertical', id: 'v3', start: [0, 0], end: [6, 0] },
+        { type: 'vertical', id: 'v4', start: [1, 1], end: [5, 1] },
+        { type: 'vertical', id: 'v5', start: [0, 0], end: [6, 0] },
+        { type: 'vertical', id: 'v6', start: [1, 1], end: [5, 1] },
+        { type: 'diagonal', id: 'd1', start: [0, 0], end: [6, 6] },
+        { type: 'diagonal', id: 'd2', start: [0, 6], end: [6, 0] },
+        { type: 'diagonal', id: 'd3', start: [6, 6], end: [3, 3] },
+        { type: 'diagonal', id: 'd4', start: [0, 6], end: [4, 4] },
+    ];
+    
+
     const [player1Pieces, setPlayer1Pieces] = useState(9);
     const [player2Pieces, setPlayer2Pieces] = useState(9);
     const [currentPlayer, setCurrentPlayer] = useState(null);
     const [phase, setPhase] = useState("placing");
     const [selectedPiece, setSelectedPiece] = useState(null);
     const [millFormed, setMillFormed] = useState(false); // New state for mill formation
+    const [notification, setNotification] = useState({ message: '', type: '' });
 
     useEffect(() => {
         fetch('/api/board')
@@ -42,12 +65,12 @@ const Board = ({ gameOptions }) => {
                 updateBoardState(data);
 
                 if (data.mill_formed) {
-                    setMillFormed(true); // Set millFormed to true
-                    alert(data.message); // Notify the player about the mill
+                    setMillFormed(true);
+                    setNotification({ message: data.message, type: 'success' });
                 }
             } else {
                 console.error('Failed to place piece:', data.message);
-                alert(data.message);
+                setNotification({ message: data.message, type: 'error' });
             }
         })
         .catch(error => console.error('Error placing piece:', error));
@@ -82,13 +105,23 @@ const Board = ({ gameOptions }) => {
                 alert("You must select an opponent's piece to remove.");
             }
         } else if (phase === "placing") {
+            // Handle placing a piece
             if (!pieces[position]) {
                 placePiece(position);
             }
-        } else if (phase === "moving" || "flying") {
-            movePiece(position);
+        } else if (phase === "moving" || phase === "flying") {
+            // Handle moving or flying phases
+            if (selectedPiece) {
+                // If a piece is already selected, attempt to move it
+                movePiece(position);
+            } else if (pieces[position] === currentPlayer) {
+                // Select the piece to move
+                setSelectedPiece(position);
+            } else {
+                alert("You can only select your own pieces to move.");
+            }
         }
-    };
+    }; 
 
     const movePiece = (position) => {
         if (selectedPiece) {
@@ -199,35 +232,117 @@ const Board = ({ gameOptions }) => {
 
     return (
         <div className="board-container">
+            {/* Notifications */}
+            {notification.message && (
+                <div className={`notification ${notification.type}`}>
+                    {notification.message}
+                </div>
+            )}
+            {/* Player 1 Info */}
             <div className="player-info">
                 <h3>Player 1 (White)</h3>
                 <p>Remaining pieces: {player1Pieces}</p>
             </div>
-
+    
+            {/* Board */}
             <div className="board">
-                {Object.keys(pieces).map((position) => (
-                    <div 
-                        key={position}
-                        className={`spot ${position} ${pieces[position] ? 'occupied' : ''} ${selectedPiece === position ? 'selected' : ''}`}
-                        onClick={() => handleClick(position)}
-                    >
-                        {pieces[position] && (
-                            <div className={`piece ${pieces[position] === 1 ? 'white' : 'black'}`}></div>
-                        )}
-                    </div>
-                ))}
-            </div>
+                {lines.map(({ type, id }) => (
+                    <div key={id} className={`line ${type} ${id}`}></div>
+                ))}   
+                {Object.keys(pieces).map((position) => {
+                    const isOwnedByCurrentPlayer = pieces[position] === currentPlayer;
+                    const isSelectable = 
+                        phase === "moving" && 
+                        selectedPiece === null && 
+                        isOwnedByCurrentPlayer;
+    
+                    const isEmpty = !pieces[position];
+                    const hoverCursor =
+                        isEmpty
+                            ? "pointer" // Allow hovering over empty spots
+                            : isSelectable
+                            ? "pointer" // Allow selecting pieces to move
+                            : "not-allowed"; // Prevent interaction with non-selectable pieces
+                    
+                    return (
 
+                        <div
+                            key={position}
+                            className={`spot ${position} ${pieces[position] ? 'occupied' : ''} ${
+                                isSelectable ? 'selectable' : ''
+                            } ${selectedPiece === position ? 'selected' : ''}`}
+                            style={{ cursor: hoverCursor }}
+                            onClick={() => handleClick(position)}
+                        >
+                         
+                            {pieces[position] && (
+                                <div
+                                    className={`piece ${
+                                        pieces[position] === 1 ? 'white' : 'black'
+                                    }`}
+                                ></div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+    
+            {/* Player 2 Info */}
             <div className="player-info">
                 <h3>Player 2 (Black)</h3>
                 <p>Remaining pieces: {player2Pieces}</p>
             </div>
-
+    
+            {/* Current Turn and Phase */}
             <p>Current Turn: Player {currentPlayer || '...'}</p>
             <p>Game Phase: {phase || "placing"}</p>
+    
+            {/* Reset Button */}
             <button onClick={resetBoard}>Reset Board</button>
         </div>
-    );
+    );  
+    // return (
+    //     <div className="board-container">
+    //         <div className="player-info">
+    //             <h3>Player 1 (White)</h3>
+    //             <p>Remaining pieces: {player1Pieces}</p>
+    //         </div>
+
+    //         <div className="board">
+    //             {/* Render Lines */}
+    //             {lines.map(({ type, id }) => (
+    //                 <div key={id} className={`line ${type} ${id}`}></div>
+    //             ))}
+
+    //             {/* Render Spots */}
+    //             {Object.keys(pieces).map((position) => (
+    //                 <div
+    //                     key={position}
+    //                     className={`spot ${position} ${pieces[position] ? 'occupied' : ''} ${
+    //                         selectedPiece === position ? 'selected' : ''
+    //                     }`}
+    //                     onClick={() => handleClick(position)}
+    //                 >
+    //                     {pieces[position] && (
+    //                         <div
+    //                             className={`piece ${pieces[position] === 1 ? 'white' : 'black'}`}
+    //                         ></div>
+    //                     )}
+    //                 </div>
+    //             ))}
+    //         </div>
+
+
+    //         <div className="player-info">
+    //             <h3>Player 2 (Black)</h3>
+    //             <p>Remaining pieces: {player2Pieces}</p>
+    //         </div>
+
+    //         <p>Current Turn: Player {currentPlayer || '...'}</p>
+    //         <p>Game Phase: {phase || "placing"}</p>
+    //         <button onClick={resetBoard}>Reset Board</button>
+    //     </div>
+    // );
 };
 
 export default Board;

@@ -88,11 +88,7 @@ class Board:
             if all(self.grid[pos[0]][pos[1]] == player_id for pos in mill):
                 return True
         return False
-
-    def is_valid_position(self, x, y):
-        """Check if a position is a valid position on the board."""
-        return (x, y) in self.adjacent_positions
-
+    
     def display(self):
         """Display the current board layout (for debugging)."""
         for row in self.grid:
