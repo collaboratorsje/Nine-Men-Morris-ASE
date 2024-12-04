@@ -14,7 +14,8 @@ const Board = ({ gameOptions }) => {
     const [currentPlayer, setCurrentPlayer] = useState(null);
     const [phase, setPhase] = useState("placing");
     const [selectedPiece, setSelectedPiece] = useState(null);
-    const [millFormed, setMillFormed] = useState(false); // New state for mill formation
+    const [millFormed, setMillFormed] = useState(false);
+    const [notification, setNotification] = useState({ message: '', type: '' });
 
     useEffect(() => {
         fetch('/api/board')
@@ -42,12 +43,12 @@ const Board = ({ gameOptions }) => {
                 updateBoardState(data);
 
                 if (data.mill_formed) {
-                    setMillFormed(true); // Set millFormed to true
-                    alert(data.message); // Notify the player about the mill
+                    setMillFormed(true);
+                    setNotification({ message: data.message, type: 'success' });
                 }
             } else {
                 console.error('Failed to place piece:', data.message);
-                alert(data.message);
+                setNotification({ message: data.message, type: 'error' });
             }
         })
         .catch(error => console.error('Error placing piece:', error));
@@ -64,10 +65,11 @@ const Board = ({ gameOptions }) => {
         .then(data => {
             if (data.success) {
                 updateBoardState(data);
-                setMillFormed(false); // Reset millFormed after removal
+                setMillFormed(false);
+                setNotification({ message: 'Piece removed successfully!', type: 'success' });
             } else {
                 console.error('Failed to remove piece:', data.message);
-                alert(data.message);
+                setNotification({ message: data.message, type: 'error' });
             }
         })
         .catch(error => console.error('Error removing piece:', error));
@@ -75,36 +77,33 @@ const Board = ({ gameOptions }) => {
 
     const handleClick = (position) => {
         if (millFormed) {
-            // Handle removing an opponent's piece
             if (pieces[position] && pieces[position] !== currentPlayer) {
                 removePiece(position);
             } else {
-                alert("You must select an opponent's piece to remove.");
+                setNotification({ message: "You must select an opponent's piece to remove.", type: 'error' });
             }
         } else if (phase === "placing") {
-            // Handle placing a piece
             if (!pieces[position]) {
                 placePiece(position);
+            } else {
+                setNotification({ message: 'This position is already occupied.', type: 'error' });
             }
         } else if (phase === "moving" || phase === "flying") {
-            // Handle moving or flying phases
             if (selectedPiece) {
-                // If a piece is already selected, attempt to move it
                 movePiece(position);
             } else if (pieces[position] === currentPlayer) {
-                // Select the piece to move
                 setSelectedPiece(position);
             } else {
-                alert("You can only select your own pieces to move.");
+                setNotification({ message: 'You can only select your own pieces to move.', type: 'error' });
             }
         }
-    };       
+    };
 
     const movePiece = (position) => {
         if (selectedPiece) {
             const [fromX, fromY] = mapPositionToCoordinates(selectedPiece);
             const [toX, toY] = mapPositionToCoordinates(position);
-    
+
             fetch('/api/move', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -119,27 +118,23 @@ const Board = ({ gameOptions }) => {
             .then(data => {
                 if (data.success) {
                     updateBoardState(data);
-    
+
                     if (data.mill_formed) {
-                        setMillFormed(true); // Set millFormed to true if a mill is formed
-                        alert(data.message); // Notify the player about the mill
+                        setMillFormed(true);
+                        setNotification({ message: data.message, type: 'success' });
                     }
-    
-                    setSelectedPiece(null); // Clear selection after moving
+
+                    setSelectedPiece(null);
                 } else {
                     console.error('Failed to move piece:', data.error);
-                    alert(data.error);
+                    setNotification({ message: data.error, type: 'error' });
                     setSelectedPiece(null);
                 }
             })
             .catch(error => {
                 console.error('Error moving piece:', error);
-                alert('An unexpected error occurred');
+                setNotification({ message: 'An unexpected error occurred.', type: 'error' });
             });
-        } else {
-            if (pieces[position] === currentPlayer) {
-                setSelectedPiece(position);
-            }
         }
     };
 
@@ -159,27 +154,14 @@ const Board = ({ gameOptions }) => {
         })
         .then(res => res.json())
         .then(data => {
-            console.log("Reset states:", {
-                pieces: mapBoardStateToPositions(data.board.grid),
-                player1Pieces: data.board.player1_pieces,
-                player2Pieces: data.board.player2_pieces,
-                currentPlayer: data.current_player,
-                phase: data.phase
-            });            
             if (data.success) {
-                // Reset pieces to an empty state
-                const emptyBoard = {
-                    'a1': null, 'd1': null, 'g1': null, 'b2': null, 'd2': null, 'f2': null,
-                    'c3': null, 'd3': null, 'e3': null, 'a4': null, 'b4': null, 'c4': null,
-                    'e4': null, 'f4': null, 'g4': null, 'c5': null, 'd5': null, 'e5': null,
-                    'b6': null, 'd6': null, 'f6': null, 'a7': null, 'd7': null, 'g7': null
-                };
                 setPieces(mapBoardStateToPositions(data.board.grid));
                 setPlayer1Pieces(data.board.player1_pieces);
                 setPlayer2Pieces(data.board.player2_pieces);
                 setCurrentPlayer(data.current_player);
                 setPhase(data.phase);
-                setMillFormed(false); // Reset millFormed
+                setMillFormed(false);
+                setNotification({ message: 'Board reset successfully!', type: 'success' });
             }
         })
         .catch(error => console.error('Error resetting the board:', error));
@@ -209,64 +191,43 @@ const Board = ({ gameOptions }) => {
 
     return (
         <div className="board-container">
-            {/* Player 1 Info */}
+            {notification.message && (
+                <div className={`notification ${notification.type}`}>
+                    {notification.message}
+                </div>
+            )}
             <div className="player-info">
                 <h3>Player 1 (White)</h3>
                 <p>Remaining pieces: {player1Pieces}</p>
             </div>
-    
-            {/* Board */}
             <div className="board">
-                {Object.keys(pieces).map((position) => {
-                    const isOwnedByCurrentPlayer = pieces[position] === currentPlayer;
-                    const isSelectable = 
-                        phase === "moving" && 
-                        selectedPiece === null && 
-                        isOwnedByCurrentPlayer;
-    
-                    const isEmpty = !pieces[position];
-                    const hoverCursor =
-                        isEmpty
-                            ? "pointer" // Allow hovering over empty spots
-                            : isSelectable
-                            ? "pointer" // Allow selecting pieces to move
-                            : "not-allowed"; // Prevent interaction with non-selectable pieces
-                    
-                    return (
-                        <div
-                            key={position}
-                            className={`spot ${position} ${pieces[position] ? 'occupied' : ''} ${
-                                isSelectable ? 'selectable' : ''
-                            } ${selectedPiece === position ? 'selected' : ''}`}
-                            style={{ cursor: hoverCursor }}
-                            onClick={() => handleClick(position)}
-                        >
-                            {pieces[position] && (
-                                <div
-                                    className={`piece ${
-                                        pieces[position] === 1 ? 'white' : 'black'
-                                    }`}
-                                ></div>
-                            )}
-                        </div>
-                    );
-                })}
+                {Object.keys(pieces).map((position) => (
+                    <div
+                        key={position}
+                        className={`spot ${position} ${pieces[position] ? 'occupied' : ''} ${
+                            selectedPiece === position ? 'selected' : ''
+                        }`}
+                        onClick={() => handleClick(position)}
+                    >
+                        {pieces[position] && (
+                            <div
+                                className={`piece ${
+                                    pieces[position] === 1 ? 'white' : 'black'
+                                }`}
+                            ></div>
+                        )}
+                    </div>
+                ))}
             </div>
-    
-            {/* Player 2 Info */}
             <div className="player-info">
                 <h3>Player 2 (Black)</h3>
                 <p>Remaining pieces: {player2Pieces}</p>
             </div>
-    
-            {/* Current Turn and Phase */}
             <p>Current Turn: Player {currentPlayer || '...'}</p>
-            <p>Game Phase: {phase || "placing"}</p>
-    
-            {/* Reset Button */}
+            <p>Game Phase: {phase || 'placing'}</p>
             <button onClick={resetBoard}>Reset Board</button>
         </div>
-    );     
+    );
 };
 
 export default Board;

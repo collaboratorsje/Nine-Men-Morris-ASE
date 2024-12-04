@@ -53,6 +53,48 @@
     background-color: black; /* Player 2 piece */
 }
 
+.notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 18px;
+    font-weight: bold;
+    padding: 15px 30px;
+    border-radius: 8px;
+    text-align: center;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    animation: fadeInOut 3s ease-in-out;
+}
+
+.notification.success {
+    background-color: #4caf50; /* Green */
+    color: white;
+}
+
+.notification.error {
+    background-color: #f44336; /* Red */
+    color: white;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(-10px); }
+    10% { opacity: 1; transform: translateY(0); }
+    90% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-10px); }
+}
+
+.notification.game-over {
+    background-color: #ff9800; /* Orange */
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 20px 40px;
+    border-radius: 10px;
+    animation: fadeInOut 3s ease-in-out;
+}
+
 /* Position-specific grid areas */
 .spot.a1 { grid-area: 1 / 1; }
 .spot.d1 { grid-area: 1 / 4; }
