@@ -15,9 +15,11 @@ def setup_game():
     starting_player = data['firstPlayer']
 
     global game_manager
-    board = Board()
+    
 
     game_type = data['gameType']
+    board = Board(game_type)
+
     if not game_type:
         return jsonify(success=False, error="Missing 'game_Type' in request payload"), 410
 
@@ -155,14 +157,13 @@ def get_board():
     return jsonify(
         board=game_manager.get_board_state(),
         current_player=game_manager.get_current_player(),
-        phase=game_manager.phase
+        phase=game_manager.phase,
+        game_type=game_manager.game_type
     )
 
 @app.route('/api/reset', methods=['POST'])
 def reset_board():
     """Reset the board to its initial empty state."""
-
-
 
     global game_manager
 
@@ -177,7 +178,7 @@ def reset_board():
     # player1 = Player(1, 9)
     # player2 = Player(2, 9)
         
-    board = Board()
+    board = Board(game_type)
 
     try:
         game_manager = GameManager(board, player1, player2, game_type, starting_player_id=1)
