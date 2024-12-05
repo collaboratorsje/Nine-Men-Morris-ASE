@@ -111,12 +111,6 @@ const GameSetup = ({ startGame }) => {
             <button type="button" onClick={handleReplayGame} disabled={!gameRecord}>
                 Replay Game
             </button>
-
-            <h3>Load Game Record</h3>
-            <input type="file" accept=".json" onChange={handleFileUpload} />
-            <button type="button" onClick={handleReplayGame} disabled={!gameRecord}>
-                Replay Game
-            </button>
         </form>
     );
 };
