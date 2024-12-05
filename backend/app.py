@@ -1,7 +1,9 @@
 from flask import Flask, jsonify, request
 from game_logic.board import Board
 from game_logic.player import Player
+from game_logic.computerplayer import ComputerPlayer
 from game_logic.gamemanager import GameManager
+import json
 
 app = Flask(__name__)
 
@@ -12,28 +14,33 @@ game_manager = None
 def setup_game():
     """Set up the game with the initial player."""
     data = request.get_json()
+
     starting_player = data['firstPlayer']
+    opponent_type = data['opponentType']
+    game_type = data['gameType']
 
     global game_manager
-    
 
-    game_type = data['gameType']
     board = Board(game_type)
-
-    if not game_type:
-        return jsonify(success=False, error="Missing 'game_Type' in request payload"), 410
 
     if game_type == '9mm':
         player1 = Player(1, 9)
-        player2 = Player(2, 9)
+        if opponent_type == 'computer':
+            player2 = ComputerPlayer(2, 9)
+        else:
+            player2 = Player(2, 9)
     else:
         player1 = Player(1, 12)
-        player2 = Player(2, 12)
+        if opponent_type == 'computer':
+            player2 = ComputerPlayer(2, 12)
+        else:
+            player2 = Player(2, 12)
 
     starting_player_id = 1 if starting_player == 'player1' else 2
 
     try:
-        game_manager = GameManager(board, player1, player2, game_type, starting_player_id)
+        game_manager = GameManager(board, player1, player2, game_type, starting_player_id, opponent_type=opponent_type)
+        print(f"GameManager initialized: Player 1 type: {type(player1)}, Player 2 type: {type(player2)}")
     except Exception as e:
         print(f"Error initializing GameManager: {e}")
         return jsonify(success=False, error="Internal server error"), 510
@@ -61,29 +68,24 @@ def check_and_return_game_over():
 
 @app.route('/api/place', methods=['POST'])
 def place_piece():
-    """Place a piece on the board at a given position."""
+    """Place a piece on the board."""
+    global game_manager
+
     data = request.get_json()
     x = data['x']
     y = data['y']
 
+    print(f"Received placement request for Player {game_manager.current_player.player_id} at ({x}, {y})")
     result = game_manager.place_piece(x, y)
-    success = result.get("success", False)
-    mill_formed = result.get("mill_formed", False)
-    message = result.get("message", "")
 
-    # Check for game over
-    game_over_response = check_and_return_game_over()
-    if game_over_response:
-        return game_over_response
+    if result.get("success"):
+        # Trigger computer turn if applicable
+        print(f"Turn after placement: Player {game_manager.current_player.player_id}")
+        if isinstance(game_manager.current_player, ComputerPlayer):
+            print("Triggering computer turn...")
+            game_manager.handle_computer_turn()
 
-    return jsonify(
-        success=success,
-        mill_formed=mill_formed,
-        message=message,
-        board=game_manager.get_board_state(),
-        current_player=game_manager.get_current_player(),
-        phase=game_manager.phase
-    )
+    return jsonify(result)
 
 @app.route('/api/move', methods=['POST'])
 def move_piece():
@@ -164,26 +166,25 @@ def get_board():
 @app.route('/api/reset', methods=['POST'])
 def reset_board():
     """Reset the board to its initial empty state."""
-
     global game_manager
 
     game_type = game_manager.game_type
+    starting_player_id = 1  # Reset to Player 1's turn
+
     if game_type == '9mm':
         player1 = Player(1, 9)
-        player2 = Player(2, 9)
+        player2 = ComputerPlayer(2, 9) if game_manager.opponent_type == "computer" else Player(2, 9)
     else:
         player1 = Player(1, 12)
-        player2 = Player(2, 12)
+        player2 = ComputerPlayer(2, 12) if game_manager.opponent_type == "computer" else Player(2, 12)
 
-    # player1 = Player(1, 9)
-    # player2 = Player(2, 9)
-        
     board = Board(game_type)
 
     try:
-        game_manager = GameManager(board, player1, player2, game_type, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, game_type, starting_player_id, opponent_type=game_manager.opponent_type)
+        print(f"GameManager reset: Player 1 type: {type(player1)}, Player 2 type: {type(player2)}")
     except Exception as e:
-        print(f"Error initializing GameManager: {e}")
+        print(f"Error resetting GameManager: {e}")
         return jsonify(success=False, error="Internal server error"), 520
 
     return jsonify(

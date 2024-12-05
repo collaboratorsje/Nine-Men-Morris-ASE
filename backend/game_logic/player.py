@@ -4,6 +4,15 @@ class Player:
         self.player_id = player_id
         self.pieces = pieces  # Number of pieces to place (12 or 12)
         self.placed_pieces = []  # Track where the player's pieces are placed
+        self.type = "Player"  # Explicit type
+
+    def to_dict(self):
+        return {
+            "player_id": self.player_id,
+            "pieces": self.pieces,
+            "placed_pieces": self.placed_pieces,
+            "type": self.type,
+        }
 
     def place_piece(self, position):
         """Place a piece for the player."""

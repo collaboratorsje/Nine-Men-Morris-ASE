@@ -1,5 +1,9 @@
+from .player import Player
+from .computerplayer import ComputerPlayer
+from .board import Board
+
 class GameManager:
-    def __init__(self, board, player1, player2, game_type, starting_player_id=1):
+    def __init__(self, board, player1, player2, game_type, starting_player_id=1, opponent_type="human"):
         """Initialize the game with a board and two players."""
         self.board = board
         self.player1 = player1
@@ -8,13 +12,19 @@ class GameManager:
         self.current_player = self.get_player_by_id(starting_player_id)
         self.phase = self.determine_phase()
         self.waiting_for_removal = False
+        self.opponent_type = opponent_type  # Store the opponent type
+
 
     def switch_turn(self):
-        """Switch the current player after a successful move and check for game over."""
+        """Switch the current player."""
         self.current_player = self.player1 if self.current_player == self.player2 else self.player2
-        game_over_status = self.check_game_over()
-        if game_over_status["game_over"]:
-            print("Game Over:", game_over_status["message"])
+        print(f"Turn switched to Player {self.current_player.player_id}")
+        print(f"Current player type: {type(self.current_player)}")
+        if isinstance(self.current_player, ComputerPlayer):
+            print("It's the computer's turn. Delegating to handle_computer_turn.")
+            self.handle_computer_turn()
+        else:
+            print("It's a human player's turn.")
 
     def get_current_player(self):
         """Return the ID of the current player."""
@@ -26,10 +36,13 @@ class GameManager:
 
     def place_piece(self, x, y):
         """Handle placing a piece on the board for the current player."""
+        print(f"Attempting to place piece at ({x}, {y}) for Player {self.current_player.player_id}")
         if self.waiting_for_removal:
+            print("Cannot place piece: waiting for opponent piece removal.")
             return {"success": False, "message": "Remove an opponent's piece before placing another."}
 
         if self.phase != 'placing':
+            print("Cannot place piece: not in placing phase.")
             return {"success": False, "message": "Not in placing phase"}
 
         if self.board.is_valid_position(x, y) and self.board.grid[x][y] is None:
@@ -40,6 +53,7 @@ class GameManager:
 
                 if mill_formed:
                     self.waiting_for_removal = True
+                    print(f"Mill formed at ({x}, {y}) for Player {self.current_player.player_id}")
                     return {
                         "success": True,
                         "mill_formed": True,
@@ -60,6 +74,7 @@ class GameManager:
                     "phase": self.phase
                 }
 
+        print(f"Failed to place piece at ({x}, {y}) for Player {self.current_player.player_id}")
         return {"success": False, "message": "Invalid position or position already occupied"}
 
     def move_piece(self, from_x, from_y, to_x, to_y):
@@ -199,6 +214,73 @@ class GameManager:
             "phase": self.phase,
             "message": "Piece removed successfully. It's now the next player's turn."
         }
+
+    def handle_computer_turn(self):
+        """Handle the computer's turn."""
+        if not isinstance(self.current_player, ComputerPlayer):
+            print("ERROR: Current player is not a ComputerPlayer. handle_computer_turn should not have been called.")
+            return
+
+        print(f"Computer is taking its turn in phase: {self.phase}")
+
+        if self.phase == "placing":
+            position = self.current_player.decide_placement(self.board)
+            if position:
+                print(f"Computer decided to place a piece at: {position}")
+                self.place_piece(*position)
+            else:
+                print("Computer failed to decide a valid placement.")
+        elif self.phase in ["moving", "flying"]:
+            from_pos, to_pos = self.current_player.decide_move(self.board)
+            if from_pos and to_pos:
+                print(f"Computer decided to move a piece from {from_pos} to {to_pos}")
+                self.move_piece(*from_pos, *to_pos)
+            else:
+                print("Computer failed to decide a valid move.")
+
+    def handle_computer_removal(self):
+        """Handle the computer removing an opponent's piece."""
+        opponent = self.player1 if self.current_player == self.player2 else self.player2
+        position = self.current_player.decide_removal(self.board, opponent)
+        if position:
+            self.remove_piece(*position)
+
+    @staticmethod
+    def deserialize_player(data):
+        player_type = data.get("type", "Player")
+        if player_type == "ComputerPlayer":
+            print(f"Deserializing as ComputerPlayer: {data}")
+            player = ComputerPlayer(data["player_id"], data["pieces"])
+        else:
+            print(f"Deserializing as Player: {data}")
+            player = Player(data["player_id"], data["pieces"])
+        player.placed_pieces = data["placed_pieces"]
+        return player
+
+
+    def to_dict(self):
+        return {
+            "board": self.board.to_dict(),
+            "player1": self.player1.to_dict(),
+            "player2": self.player2.to_dict(),
+            "current_player_id": self.get_current_player(),
+            "phase": self.phase,
+            "opponent_type": self.opponent_type,
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        board = Board.from_dict(data["board"])
+        player1 = cls.deserialize_player(data["player1"])
+        player2 = cls.deserialize_player(data["player2"])
+        print(f"Restoring GameManager: Player 1 type: {type(player1)}, Player 2 type: {type(player2)}")
+        game_manager = cls(
+            board, player1, player2, data["board"]["game_type"], starting_player_id=data.get("current_player_id")
+        )
+        game_manager.phase = data["phase"]
+        game_manager.opponent_type = data.get("opponent_type", "human")
+        game_manager.current_player = game_manager.get_player_by_id(data["current_player_id"])
+        return game_manager
 
 
     def get_board_state(self):

@@ -6,6 +6,20 @@ class Board:
         self.valid_positions = self.get_valid_positions()
         self.game_type = game_type
 
+    # Add this method to serialize the board state
+    def to_dict(self):
+        return {
+            "grid": self.grid,
+            "game_type": self.game_type,
+        }
+
+    # Add this method to deserialize the board state
+    @classmethod
+    def from_dict(cls, data):
+        board = cls(data["game_type"])
+        board.grid = data["grid"]
+        return board
+
     def get_valid_positions(self):
         """Return the valid positions for placing pieces based on Nine Men's Morris."""
         # Return a list of tuples that represent all the valid positions on the board
