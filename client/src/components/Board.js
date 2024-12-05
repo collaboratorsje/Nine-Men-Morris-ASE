@@ -69,23 +69,25 @@ const Board = ({ gameOptions, gameRecord = null, updateGameRecord }) => {
     }
   }, [setNotification]);
 
-  // Wrap updateBoardState with useCallback
+  const [waitingForRemoval, setWaitingForRemoval] = useState(false); // Add state for removal phase
+
   const updateBoardState = useCallback((data) => {
-    setPieces(mapBoardStateToPositions(data.board.grid));
-    setPlayer1Pieces(data.board.player1_pieces);
-    setPlayer2Pieces(data.board.player2_pieces);
-    setCurrentPlayer(data.current_player);
-    setPhase(data.phase);
-
-    if (data.phase === "game_over" || data.game_over) {
-        console.log("Game over detected via phase or flag:", data.message);
-        setGameOver(true);
-        setGameOverMessage(data.message || "Game Over! Thanks for playing.");
-    } else if (data.message) {
-        showNotification(data.message, "success");
-    }
+      setPieces(mapBoardStateToPositions(data.board.grid));
+      setPlayer1Pieces(data.board.player1_pieces);
+      setPlayer2Pieces(data.board.player2_pieces);
+      setCurrentPlayer(data.current_player);
+      setPhase(data.phase);
+      setWaitingForRemoval(data.waiting_for_removal || false); // Update removal state
+  
+      if (data.phase === "game_over" || data.game_over) {
+          console.log("Game over detected via phase or flag:", data.message);
+          setGameOver(true);
+          setGameOverMessage(data.message || "Game Over! Thanks for playing.");
+      } else if (data.message) {
+          showNotification(data.message, "success");
+      }
   }, [mapBoardStateToPositions, setPieces, setPlayer1Pieces, setPlayer2Pieces, setCurrentPlayer, setPhase, setGameOver, setGameOverMessage, showNotification]);
-
+  
   useEffect(() => {
     if (!gameOptions) {
       console.error("No game options provided.");
@@ -228,21 +230,24 @@ const Board = ({ gameOptions, gameRecord = null, updateGameRecord }) => {
   
   const handleClick = (position) => {
     if (notification?.type === "game-over") return; // Prevent interaction after game over
-  
-    if (millFormed) {
-      if (pieces[position] && pieces[position] !== currentPlayer) {
-        removePiece(position);
-      } else {
-        showNotification("You must select an opponent's piece to remove.", "error");
-      }
-    } else if (phase === "placing") {
-      if (!pieces[position]) {
-        placePiece(position);
-      }
-    } else if (phase === "moving" || phase === "flying") {
-      movePiece(position);
+
+    if (waitingForRemoval) { // Block interactions during removal phase
+        if (pieces[position] && pieces[position] !== currentPlayer) {
+            removePiece(position);
+        } else {
+            showNotification("You must select an opponent's piece to remove.", "error");
+        }
+        return; // Prevent further actions until removal is resolved
     }
-  };
+
+    if (phase === "placing") {
+        if (!pieces[position]) {
+            placePiece(position);
+        }
+    } else if (phase === "moving" || phase === "flying") {
+        movePiece(position);
+    }
+};
 
   const GameOverModal = ({ message, onReset }) => (
     <div className="modal-overlay">

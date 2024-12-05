@@ -156,17 +156,6 @@ class GameManager:
 
     def remove_piece(self, x, y):
         """Remove an opponent's piece from the board."""
-        # Check if the game is already over
-        game_over_status = self.check_game_over()
-        if game_over_status["game_over"]:
-            return {
-                "success": True,
-                "game_over": True,
-                "winner": game_over_status["winner"],
-                "message": game_over_status["message"],
-                "board": self.get_board_state()
-            }
-
         # Ensure a mill has been formed and removal is expected
         if not self.waiting_for_removal:
             return {"success": False, "message": "No mill formed. You cannot remove a piece now."}
@@ -190,7 +179,7 @@ class GameManager:
             opponent.placed_pieces.remove((x, y))
 
         opponent.remove_piece((x, y))
-        self.waiting_for_removal = False
+        self.waiting_for_removal = False  # Reset the flag after removal
         self.phase = self.determine_phase()
 
         # Re-check if removing this piece results in a game over
@@ -218,32 +207,53 @@ class GameManager:
     def handle_computer_turn(self):
         """Handle the computer's turn."""
         if not isinstance(self.current_player, ComputerPlayer):
-            print("ERROR: Current player is not a ComputerPlayer. handle_computer_turn should not have been called.")
+            print("ERROR: handle_computer_turn called, but current player is not a ComputerPlayer.")
             return
 
         print(f"Computer is taking its turn in phase: {self.phase}")
+
+        if self.waiting_for_removal:
+            print("Computer needs to remove an opponent's piece.")
+            self.handle_computer_removal()  # Ensure this is called
+            return
 
         if self.phase == "placing":
             position = self.current_player.decide_placement(self.board)
             if position:
                 print(f"Computer decided to place a piece at: {position}")
-                self.place_piece(*position)
+                result = self.place_piece(*position)
+                if result.get("mill_formed"):
+                    print("Computer formed a mill. Removing an opponent's piece.")
+                    self.handle_computer_removal()
             else:
                 print("Computer failed to decide a valid placement.")
+
         elif self.phase in ["moving", "flying"]:
             from_pos, to_pos = self.current_player.decide_move(self.board)
             if from_pos and to_pos:
                 print(f"Computer decided to move a piece from {from_pos} to {to_pos}")
-                self.move_piece(*from_pos, *to_pos)
+                result = self.move_piece(*from_pos, *to_pos)
+                if result.get("mill_formed"):
+                    print("Computer formed a mill after moving. Removing an opponent's piece.")
+                    self.handle_computer_removal()
             else:
                 print("Computer failed to decide a valid move.")
 
     def handle_computer_removal(self):
-        """Handle the computer removing an opponent's piece."""
+        """Handle removal of an opponent's piece by the computer."""
         opponent = self.player1 if self.current_player == self.player2 else self.player2
         position = self.current_player.decide_removal(self.board, opponent)
+
         if position:
-            self.remove_piece(*position)
+            print(f"Computer decided to remove opponent's piece at: {position}")
+            result = self.remove_piece(*position)
+            if result["success"]:
+                print(f"Piece at {position} successfully removed by computer.")
+            else:
+                print(f"Failed to remove piece at {position}. Error: {result['message']}")
+        else:
+            print("Computer could not decide which piece to remove.")
+
 
     @staticmethod
     def deserialize_player(data):
@@ -266,6 +276,7 @@ class GameManager:
             "current_player_id": self.get_current_player(),
             "phase": self.phase,
             "opponent_type": self.opponent_type,
+            "waiting_for_removal": self.waiting_for_removal,  # Include this flag
         }
 
     @classmethod

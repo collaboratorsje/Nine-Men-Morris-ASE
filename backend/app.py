@@ -25,16 +25,10 @@ def setup_game():
 
     if game_type == '9mm':
         player1 = Player(1, 9)
-        if opponent_type == 'computer':
-            player2 = ComputerPlayer(2, 9)
-        else:
-            player2 = Player(2, 9)
+        player2 = ComputerPlayer(2, 9) if opponent_type == 'computer' else Player(2, 9)
     else:
         player1 = Player(1, 12)
-        if opponent_type == 'computer':
-            player2 = ComputerPlayer(2, 12)
-        else:
-            player2 = Player(2, 12)
+        player2 = ComputerPlayer(2, 12) if opponent_type == 'computer' else Player(2, 12)
 
     starting_player_id = 1 if starting_player == 'player1' else 2
 
@@ -49,7 +43,8 @@ def setup_game():
         success=True,
         board=game_manager.get_board_state(),
         current_player=game_manager.get_current_player(),
-        phase=game_manager.phase
+        phase=game_manager.phase,
+        waiting_for_removal=game_manager.waiting_for_removal
     )
 
 def check_and_return_game_over():
@@ -78,9 +73,11 @@ def place_piece():
     print(f"Received placement request for Player {game_manager.current_player.player_id} at ({x}, {y})")
     result = game_manager.place_piece(x, y)
 
+    # Add `waiting_for_removal` to the response
+    result["waiting_for_removal"] = game_manager.waiting_for_removal
+
     if result.get("success"):
         # Trigger computer turn if applicable
-        print(f"Turn after placement: Player {game_manager.current_player.player_id}")
         if isinstance(game_manager.current_player, ComputerPlayer):
             print("Triggering computer turn...")
             game_manager.handle_computer_turn()
@@ -92,7 +89,6 @@ def move_piece():
     """Move a piece on the board from one position to another."""
     data = request.get_json()
 
-    # Debugging: Log the data received from the frontend
     print("Backend received move_piece payload:", data)
 
     if not data or 'from_x' not in data or 'from_y' not in data or 'to_x' not in data or 'to_y' not in data:
@@ -104,27 +100,10 @@ def move_piece():
     to_y = data['to_y']
 
     result = game_manager.move_piece(from_x, from_y, to_x, to_y)
-    success = result.get("success", False)
-    mill_formed = result.get("mill_formed", False)
-    message = result.get("message", "")
 
-    # Debugging: Log the result of the move operation
-    print(f"Move result: {result}, Success: {success}, Mill Formed: {mill_formed}, Message: {message}")
+    result["waiting_for_removal"] = game_manager.waiting_for_removal  # Include removal state
 
-    phase = game_manager.phase
-    print(f"Game Phase after move: {phase}")
-
-    if not success:
-        return jsonify(success=False, error=message), 430
-
-    return jsonify(
-        success=success,
-        mill_formed=mill_formed,
-        message=message,
-        board=game_manager.get_board_state(),
-        current_player=game_manager.get_current_player(),
-        phase=phase
-    )
+    return jsonify(result)
 
 @app.route('/api/remove', methods=['POST'])
 def remove_piece():
@@ -134,24 +113,10 @@ def remove_piece():
     y = data['y']
 
     result = game_manager.remove_piece(x, y)
-    success = result.get("success", False)
-    message = result.get("message", "")
 
-    # Check for game over
-    game_over_response = check_and_return_game_over()
-    if game_over_response:
-        return game_over_response
+    result["waiting_for_removal"] = game_manager.waiting_for_removal  # Include removal state
 
-    if not success:
-        return jsonify(success=False, message=message), 440
-
-    return jsonify(
-        success=True,
-        board=game_manager.get_board_state(),
-        current_player=game_manager.get_current_player(),
-        phase=game_manager.phase,
-        message=message
-    )
+    return jsonify(result)
 
 @app.route('/api/board', methods=['GET'])
 def get_board():
@@ -160,7 +125,8 @@ def get_board():
         board=game_manager.get_board_state(),
         current_player=game_manager.get_current_player(),
         phase=game_manager.phase,
-        game_type=game_manager.game_type
+        game_type=game_manager.game_type,
+        waiting_for_removal=game_manager.waiting_for_removal  # Include removal state
     )
 
 @app.route('/api/reset', methods=['POST'])
@@ -169,7 +135,7 @@ def reset_board():
     global game_manager
 
     game_type = game_manager.game_type
-    starting_player_id = 1  # Reset to Player 1's turn
+    starting_player_id = 1
 
     if game_type == '9mm':
         player1 = Player(1, 9)
@@ -191,7 +157,8 @@ def reset_board():
         success=True,
         board=game_manager.get_board_state(),
         current_player=game_manager.get_current_player(),
-        phase=game_manager.phase
+        phase=game_manager.phase,
+        waiting_for_removal=game_manager.waiting_for_removal  # Include removal state
     )
 
 if __name__ == '__main__':

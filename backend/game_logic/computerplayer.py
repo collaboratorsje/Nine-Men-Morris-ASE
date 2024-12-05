@@ -34,6 +34,18 @@ class ComputerPlayer(Player):
 
     def decide_removal(self, board, opponent):
         """Decide which opponent's piece to remove, randomly."""
-        opponent_pieces = opponent.placed_pieces
-        print(f"Computer deciding removal. Opponent pieces: {opponent_pieces}")
-        return random.choice(opponent_pieces) if opponent_pieces else None
+        removable_pieces = [
+            pos for pos in opponent.placed_pieces
+            if not board.check_for_mill(pos[0], pos[1], opponent) or self.all_opponent_pieces_in_mills(board, opponent)
+        ]
+        print(f"Removable pieces for the computer: {removable_pieces}")
+        return random.choice(removable_pieces) if removable_pieces else None
+
+    def all_opponent_pieces_in_mills(self, board, opponent):
+        """Check if all opponent pieces are in mills."""
+        for pos in opponent.placed_pieces:
+            if not board.check_for_mill(pos[0], pos[1], opponent):
+                return False
+        return True
+
+
