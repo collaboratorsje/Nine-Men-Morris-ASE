@@ -42,7 +42,6 @@ class TestGameManager:
         result = player.remove_piece((2, 2))  # Attempt to remove a piece that was never placed
         assert result is False  # Should return False since (2, 2) was not placed
 
-
     def test_switch_turn(self):
         board = Board()
         player1 = Player(1, 9)

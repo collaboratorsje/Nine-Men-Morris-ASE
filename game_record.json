@@ -1,0 +1,264 @@
+{
+  "moves": [
+    {
+      "action": "place",
+      "position": "a1",
+      "player": 1
+    },
+    {
+      "action": "place",
+      "position": "b2",
+      "player": 2
+    },
+    {
+      "action": "place",
+      "position": "c3",
+      "player": 1
+    },
+    {
+      "action": "place",
+      "position": "d3",
+      "player": 2
+    },
+    {
+      "action": "place",
+      "position": "e3",
+      "player": 1
+    },
+    {
+      "action": "place",
+      "position": "e4",
+      "player": 2
+    },
+    {
+      "action": "place",
+      "position": "e5",
+      "player": 1
+    },
+    {
+      "action": "place",
+      "position": "d5",
+      "player": 2
+    },
+    {
+      "action": "place",
+      "position": "c5",
+      "player": 1
+    },
+    {
+      "action": "place",
+      "position": "b6",
+      "player": 2
+    },
+    {
+      "action": "place",
+      "position": "a7",
+      "player": 1
+    },
+    {
+      "action": "place",
+      "position": "c4",
+      "player": 2
+    },
+    {
+      "action": "place",
+      "position": "g7",
+      "player": 1
+    },
+    {
+      "action": "place",
+      "position": "f6",
+      "player": 2
+    },
+    {
+      "action": "place",
+      "position": "g1",
+      "player": 1
+    },
+    {
+      "action": "place",
+      "position": "f2",
+      "player": 2
+    },
+    {
+      "action": "place",
+      "position": "d1",
+      "player": 1
+    },
+    {
+      "action": "remove",
+      "position": "d3",
+      "player": 1
+    },
+    {
+      "action": "place",
+      "position": "f4",
+      "player": 2
+    },
+    {
+      "action": "remove",
+      "position": "c3",
+      "player": 2
+    },
+    {
+      "action": "move",
+      "from": "d1",
+      "to": "d2",
+      "player": 1
+    },
+    {
+      "action": "move",
+      "from": "f4",
+      "to": "g4",
+      "player": 2
+    },
+    {
+      "action": "move",
+      "from": "d2",
+      "to": "d1",
+      "player": 1
+    },
+    {
+      "action": "remove",
+      "position": "g4",
+      "player": 1
+    },
+    {
+      "action": "move",
+      "from": "c4",
+      "to": "b4",
+      "player": 2
+    },
+    {
+      "action": "remove",
+      "position": "c5",
+      "player": 2
+    },
+    {
+      "action": "move",
+      "from": "e3",
+      "to": "d3",
+      "player": 1
+    },
+    {
+      "action": "move",
+      "from": "d5",
+      "to": "d6",
+      "player": 2
+    },
+    {
+      "action": "remove",
+      "position": "e5",
+      "player": 2
+    },
+    {
+      "action": "move",
+      "from": "d3",
+      "to": "d2",
+      "player": 1
+    },
+    {
+      "action": "move",
+      "from": "e4",
+      "to": "f4",
+      "player": 2
+    },
+    {
+      "action": "remove",
+      "position": "d2",
+      "player": 2
+    },
+    {
+      "action": "move",
+      "from": "d1",
+      "to": "d2",
+      "player": 1
+    },
+    {
+      "action": "move",
+      "from": "b4",
+      "to": "c4",
+      "player": 2
+    },
+    {
+      "action": "move",
+      "from": "d2",
+      "to": "d3",
+      "player": 1
+    },
+    {
+      "action": "move",
+      "from": "c4",
+      "to": "b4",
+      "player": 2
+    },
+    {
+      "action": "remove",
+      "position": "d3",
+      "player": 2
+    },
+    {
+      "action": "move",
+      "from": "g1",
+      "to": "d1",
+      "player": 1
+    },
+    {
+      "action": "move",
+      "from": "b4",
+      "to": "c4",
+      "player": 2
+    },
+    {
+      "action": "move",
+      "from": "d1",
+      "to": "d2",
+      "player": 1
+    },
+    {
+      "action": "move",
+      "from": "c4",
+      "to": "b4",
+      "player": 2
+    },
+    {
+      "action": "remove",
+      "position": "d2",
+      "player": 2
+    },
+    {
+      "action": "move",
+      "from": "a1",
+      "to": "d7",
+      "player": 1
+    },
+    {
+      "action": "remove",
+      "position": "d6",
+      "player": 1
+    },
+    {
+      "action": "move",
+      "from": "b4",
+      "to": "c4",
+      "player": 2
+    },
+    {
+      "action": "move",
+      "from": "d7",
+      "to": "d6",
+      "player": 1
+    },
+    {
+      "action": "move",
+      "from": "c4",
+      "to": "b4",
+      "player": 2
+    },
+    {
+      "action": "remove",
+      "position": "d6",
+      "player": 2
+    }
+  ]
+}

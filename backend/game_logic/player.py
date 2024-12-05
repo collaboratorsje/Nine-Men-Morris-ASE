@@ -2,7 +2,7 @@ class Player:
     def __init__(self, player_id, pieces):
         """Initialize the player with a given ID and the number of pieces."""
         self.player_id = player_id
-        self.pieces = pieces  # Number of pieces to place (9 or 12)
+        self.pieces = pieces  # Number of pieces to place (12 or 12)
         self.placed_pieces = []  # Track where the player's pieces are placed
 
     def place_piece(self, position):

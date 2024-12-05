@@ -1,3 +1,61 @@
+/* Global styling for the background */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #d3d3d3; /* Light Steel Gray */
+    font-family: 'Arial', sans-serif;
+}
+
+/* Ensure all containers match the background */
+.game-container {
+    min-height: 100vh; /* Cover entire viewport height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Board container with border and rounded corners */
+.board-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    border: 2px solid #b5a37e; /* Slightly darker tan border */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    background-color: #ffffff; /* White background */
+    max-width: 600px; /* Limit width of the entire container */
+    margin: 20px auto; /* Add vertical spacing */
+}
+
+/* Add spacing below the board */
+.board-container {
+    margin-bottom: 40px; /* Extra spacing between board and window bottom */
+}
+
+/* Header styling */
+header {
+    text-align: center;
+    width: 100%;
+    padding: 10px 0; /* Reduce padding to make it shorter */
+    background-color: #778899; /* Light Steel Gray for header */
+    color: #ffffff; /* White text */
+    font-size: 24px;
+    font-weight: bold;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* Styling for player info at the top and bottom */
+.player-info-top, .player-info-bottom {
+    text-align: center;
+    font-size: 18px;
+    margin: 10px 0;
+    color: #333; /* Dark text for readability */
+}
+
+/* Styling for the board */
 .board {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -6,108 +64,71 @@
     height: 400px;
     background-color: #f9f2d4; /* Board background */
     position: relative;
+    margin: 20px 0; /* Add space around the board */
+    border: 2px solid #b5a37e; /* Slightly darker tan border */
+    border-radius: 8px; /* Rounded corners for board */
 }
 
-.line {
-    position: absolute;
-    background-color: gray;
+/* Game Info Styling */
+.game-info {
+    text-align: center;
+    font-size: 16px;
+    margin-top: 20px;
+    color: #444; /* Dark gray for contrast */
 }
 
-.line.horizontal {
-    height: 2%;   
+/* Reset Button Styling */
+.reset-button {
+    background-color: #4caf50;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.3s ease;
 }
 
-.line.horizontal.h1 { top: 5.5%; width: 90%;}
-.line.horizontal.h2 { top: 20%; left: 15%; width: 65%;}
-.line.horizontal.h3 { top: 34%; left: 30%; width: 35%;}
-.line.horizontal.h4 { top: 48%; left: 5.5%; width: 30%;}
-.line.horizontal.h5 { top: 48%; left: 60%; width: 30%;}
-.line.horizontal.h6 { top: 63%; left: 30%; width: 35%;}
-.line.horizontal.h7 { top: 77%; left: 15%; width: 65%;}
-.line.horizontal.h8 { top: 91%; width: 90%;}
-
-.line.vertical {
-    width: 8px;
-    height: 90%;
+.reset-button:hover {
+    background-color: #45a049;
 }
 
-.line.vertical.v1 { left: 5.25%; top: 1% }
-.line.vertical.v2 { left: 20%; top: 15%; height: 65%; }
-.line.vertical.v3 { left: 34%; top: 30%; height: 35%; }
-.line.vertical.v4 { left: 48%; top: 5%; height: 35%; }
-.line.vertical.v5 { left: 48%; top: 60%; height: 35%; }
-.line.vertical.v6 { left: 62%; top: 30%; height: 35%; }
-.line.vertical.v7 { left: 77%; top: 15%; height: 65%; }
-.line.vertical.v8 { right: 7%; top: 1% }
-
-.line.diagonal {
-    width: 100%;
-    height: 8px;
-}
-
-.line.diagonal.d1 {
-    transform: rotate(45deg);
-    transform-origin: top left;
-    top: 5%;
-    left: 6%;
-    width: 40%;
-}
-
-.line.diagonal.d2 {
-    transform: rotate(-45deg);
-    transform-origin: top right;
-    top: 5%;
-    right: 8%;
-    width: 40%;
-}
-
-.line.diagonal.d3 {
-    transform: rotate(-45deg);
-    transform-origin: bottom left;
-    top: 90%;
-    left: 7%;
-    width: 38%;
-}
-
-.line.diagonal.d4 {
-    transform: rotate(45deg);
-    transform-origin: top right;
-    top: 92%;
-    right: 7%;
-    width: 40%;
-}
-
+/* Spot and Piece Styling */
 .spot {
     width: 50px;
     height: 50px;
-    background-color: gray;
+    background-color: #d2b48c; /* Light tan */
+    border: 2px solid #b5a37e; /* Slightly darker tan for the border */
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    cursor: not-allowed;
-    position: relative;
-    z-index: 2; /* Above lines */
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.spot:hover {
+    background-color: #ffa07a; /* Burnt orange for hover effect */
+    border-color: #ff9800; /* Highlight the border */
+    box-shadow: 0 0 10px #ff9800; /* Add a subtle glow */
+    transform: scale(1.1); /* Slight zoom effect */
 }
 
 .spot.occupied {
-    cursor: not-allowed; /* Prevents clicking on occupied spots */
+    background-color: #333333; /* Dark gray for occupied spots */
+    cursor: not-allowed;
 }
 
-.spot.occupied.current-player {
-    cursor: pointer; /* Allow current player to select pieces in "moving" phase */
-}
-
+/* Additional styles for selected and occupied states */
 .spot.selected {
-    outline: 2px solid blue; /* Highlight selected piece */
+    background-color: #ffcc80; /* Lighter orange for selected pieces */
+    border-color: #ff9800;
 }
 
-.spot.selectable:hover {
-    cursor: pointer; /* Valid pieces show pointer cursor */
-}
-
-.spot:not(.selectable):hover {
-    cursor: not-allowed; /* Invalid pieces show cancel sign */
+/* Ensure hovering on pieces owned by the current player shows a pointer */
+.spot.occupied.current-player {
+    cursor: pointer;
 }
 
 .piece {
@@ -127,71 +148,114 @@
 
 .notification {
     position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 40px; /* Distance from bottom */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Perfect centering */
     font-size: 18px;
     font-weight: bold;
-    padding: 15px 30px;
-    border-radius: 8px;
+    padding: 20px; /* Box-like padding */
+    width: 300px; /* Restrict width */
     text-align: center;
+    border-radius: 10px; /* Rounded corners */
     z-index: 1000;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    animation: fadeInOut 3s ease-in-out;
+    background-color: #444; /* Neutral background */
+    color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    animation: fadeInOut 6s ease-in-out; /* Default 6s duration */
 }
 
+/* Customize notifications based on type */
 .notification.success {
-    background-color: #4caf50; /* Green */
-    color: white;
+    background-color: #4caf50; /* Green for success */
 }
 
 .notification.error {
-    background-color: #f44336; /* Red */
-    color: white;
+    background-color: #f44336; /* Red for error */
 }
 
+.notification.game-over {
+    background-color: #ff5722; /* Burnt Orange for game over */
+    font-size: 20px;
+    font-weight: bold;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(10px); }
+    10% { opacity: 1; transform: translateY(0); }
+    90% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(10px); }
+}
+
+/* Modal Styling */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal {
+    background: white;
+    padding: 20px 40px;
+    border-radius: 10px; /* Slightly larger border-radius for smoother corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+.modal h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #333; /* Neutral dark gray for a modern look */
+}
+
+.modal p {
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: #555; /* Slightly lighter gray for better readability */
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* Increased spacing between buttons */
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 12px 25px; /* Larger padding for better clickability */
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold; /* Make the text stand out */
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth hover effects */
+}
+
+.modal-buttons button:hover {
+    background-color: #45a049;
+    transform: scale(1.05); /* Slight zoom effect */
+}
+
+.modal-buttons button:active {
+    transform: scale(0.95); /* Button compresses slightly when clicked */
+}
+
+/* Animation for notifications */
 @keyframes fadeInOut {
     0% { opacity: 0; transform: translateY(-10px); }
     10% { opacity: 1; transform: translateY(0); }
     90% { opacity: 1; }
     100% { opacity: 0; transform: translateY(-10px); }
-}
-
-.notification.game-over {
-    background-color: #ff9800; /* Orange */
-    color: white;
-    font-size: 24px;
-    font-weight: bold;
-    padding: 20px 40px;
-    border-radius: 10px;
-    animation: fadeInOut 3s ease-in-out;
-}
-
-/* Position-specific grid areas */
-.spot.a1 { grid-area: 1 / 1; }
-.spot.d1 { grid-area: 1 / 4; }
-.spot.g1 { grid-area: 1 / 7; }
-
-.notification.error {
-    background-color: #f44336; /* Red */
-    color: white;
-}
-
-@keyframes fadeInOut {
-    0% { opacity: 0; transform: translateY(-10px); }
-    10% { opacity: 1; transform: translateY(0); }
-    90% { opacity: 1; }
-    100% { opacity: 0; transform: translateY(-10px); }
-}
-
-.notification.game-over {
-    background-color: #ff9800; /* Orange */
-    color: white;
-    font-size: 24px;
-    font-weight: bold;
-    padding: 20px 40px;
-    border-radius: 10px;
-    animation: fadeInOut 3s ease-in-out;
 }
 
 .spot.a1 { z-index: 2 ;grid-area: 1 / 1; }

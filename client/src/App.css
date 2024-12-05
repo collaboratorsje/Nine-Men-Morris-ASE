@@ -1,11 +1,43 @@
 .App {
   text-align: center;
-  background-color: #f0f0f0;
-  height: 100vh;
+  background-color: #D3D3D3; /* Replace with desired consistent color */
+  min-height: 100vh; /* Ensure it covers the full viewport */
+  margin: 0; /* Eliminate potential gaps */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.App-header {
+  background-color: #505050; /* Match the main background color */
+  padding: 20px;
+  color: white;
+  font-size: 24px;
+  width: 100%; /* Ensure the header spans the full width */
+  text-align: center;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3); /* Optional: Add shadow for separation */
+}
+
+main {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  flex-grow: 1; /* Expand the main section to fill available space */
+}
+
+.game-board-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #FFFFFF; /* Background color inside the border */
+  padding: 20px;
+  border-radius: 15px; /* Rounds the corners of the wrapper */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); /* Adds a shadow */
+  border: 3px solid #D2B48C; /* Warm Tan Border */
+  margin: 0 auto; /* Centers it horizontally */
+  width: 450px; /* Adjust width for square container */
+  height: 450px; /* Adjust height for square container */
 }
 
 .App-logo {
@@ -17,19 +49,6 @@
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
-}
-
-.App-header {
-  background-color: #282c34;
-  padding: 20px;
-  color: white;
-  font-size: 24px;
-}
-
-main {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
 }
 
 .App-link {
