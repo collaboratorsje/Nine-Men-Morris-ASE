@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import "./Board.css";
 
-const Board = ({ gameOptions }) => {
+const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
+  console.log("Board component rendering...");
+    console.log("Received gameRecord in Board:", gameRecord);
   const [pieces, setPieces] = useState({
     'a1': null, 'd1': null, 'g1': null, 'b2': null, 'd2': null, 'f2': null,
     'c3': null, 'd3': null, 'e3': null, 'a4': null, 'b4': null, 'c4': null,
@@ -45,7 +47,7 @@ const Board = ({ gameOptions }) => {
   const [notification, setNotification] = useState(null); // New state for notifications
   const [gameOver, setGameOver] = useState(false);
   const [gameOverMessage, setGameOverMessage] = useState("");
-  const [gameRecord, setGameRecord] = useState({ moves: [] }); // Initialize the game record
+  const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
 
   useEffect(() => {
     fetch('/api/board')
@@ -56,115 +58,112 @@ const Board = ({ gameOptions }) => {
       .catch(error => console.error("Error fetching board state:", error));
   }, []);
 
+  const applyMove = (move) => {
+    const { action, position, from, to, player } = move;
+
+    setPieces((prevPieces) => {
+      const updatedPieces = { ...prevPieces };
+      if (action === "place") {
+        updatedPieces[position] = player;
+      } else if (action === "move") {
+        updatedPieces[from] = null;
+        updatedPieces[to] = player;
+      } else if (action === "remove") {
+        updatedPieces[position] = null;
+      }
+      return updatedPieces;
+    });
+  };
+
+  const playNextMove = () => {
+    if (currentMoveIndex < gameRecord.length) {
+      const move = gameRecord[currentMoveIndex];
+      console.log("Applying move:", move);
+      applyMove(move);
+      setCurrentMoveIndex((index) => index + 1);
+    } else {
+      console.log("All moves have been replayed.");
+    }
+  };
+
   const placePiece = (position) => {
     const [x, y] = mapPositionToCoordinates(position);
     fetch('/api/place', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ x, y })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ x, y })
     })
-    .then(res => res.json())
-    .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.success) {
-            updateBoardState(data);
-            console.log("Current Player Before Recording:", currentPlayer);
-            // Record the move
-            setGameRecord((prevRecord) => {
-                const updatedRecord = {
-                    moves: [...prevRecord.moves, { action: 'place', position, player: currentPlayer }]
-                };
-                console.log("Updated Game Record:", updatedRecord); // Debugging log
-                return updatedRecord;
-            });
-
-            if (data.mill_formed) {
-                setMillFormed(true);
-                showNotification("Mill formed! Remove an opponent's piece.", "success");
-            }
+          updateBoardState(data);
+          updateGameRecord((prevRecord) => ({
+            moves: [...prevRecord.moves, { action: 'place', position, player: currentPlayer }],
+          }));
+          if (data.mill_formed) {
+            setMillFormed(true);
+            showNotification("Mill formed! Remove an opponent's piece.", "success");
+          }
         } else {
-            showNotification(data.message, "error");
+          showNotification(data.message, "error");
         }
-    })
-    .catch(error => console.error("Error placing piece:", error));
-  };
+      })
+      .catch((error) => console.error("Error placing piece:", error));
+  };  
 
   const removePiece = (position) => {
     const [x, y] = mapPositionToCoordinates(position);
     fetch('/api/remove', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ x, y })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ x, y })
     })
-    .then(res => res.json())
-    .then(data => {
-        console.log("Remove Piece Response:", data); // Debugging log
-
+      .then((res) => res.json())
+      .then((data) => {
         if (data.success) {
-            updateBoardState(data);
-
-            // Record the remove action
-            setGameRecord((prevRecord) => {
-                const updatedRecord = {
-                    moves: [...prevRecord.moves, { action: 'remove', position, player: currentPlayer }]
-                };
-                console.log("Updated Game Record (Remove):", updatedRecord); // Debugging log
-                return updatedRecord;
-            });
-
-            setMillFormed(false);
+          updateBoardState(data);
+          updateGameRecord((prevRecord) => ({
+            moves: [...prevRecord.moves, { action: 'remove', position, player: currentPlayer }],
+          }));
+          setMillFormed(false);
         } else {
-            showNotification(data.message, "error");
+          showNotification(data.message, "error");
         }
-    })
-    .catch(error => console.error("Error removing piece:", error));
-  };
+      })
+      .catch((error) => console.error("Error removing piece:", error));
+  };  
 
   const movePiece = (position) => {
     if (selectedPiece) {
       const [fromX, fromY] = mapPositionToCoordinates(selectedPiece);
       const [toX, toY] = mapPositionToCoordinates(position);
   
-      // Debugging statement to ensure the payload is correct
-      console.log("Move piece payload:", { from_x: fromX, from_y: fromY, to_x: toX, to_y: toY });
-  
       fetch('/api/move', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from_x: fromX,
-          from_y: fromY,
-          to_x: toX,
-          to_y: toY
-        })
+        body: JSON.stringify({ from_x: fromX, from_y: fromY, to_x: toX, to_y: toY })
       })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          updateBoardState(data);
-  
-          // Record the move in the gameRecord
-          setGameRecord((prevRecord) => ({
-            moves: [
-              ...prevRecord.moves,
-              { action: 'move', from: selectedPiece, to: position, player: currentPlayer }
-            ]
-          }));
-  
-          if (data.mill_formed) {
-            setMillFormed(true);
-            showNotification("Mill formed! Remove an opponent's piece.", "success");
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            updateBoardState(data);
+            updateGameRecord((prevRecord) => ({
+              moves: [
+                ...prevRecord.moves,
+                { action: 'move', from: selectedPiece, to: position, player: currentPlayer },
+              ],
+            }));
+            if (data.mill_formed) {
+              setMillFormed(true);
+              showNotification("Mill formed! Remove an opponent's piece.", "success");
+            }
+            setSelectedPiece(null);
+          } else {
+            showNotification(data.message, "error");
+            setSelectedPiece(null);
           }
-          setSelectedPiece(null);
-        } else {
-          console.error("Error from backend:", data.message);
-          showNotification(data.message, "error");
-          setSelectedPiece(null);
-        }
-      })
-      .catch(error => {
-        console.error("Error during fetch:", error);
-        showNotification("An unexpected error occurred.", "error");
-      });
+        })
+        .catch((error) => showNotification("An unexpected error occurred.", "error"));
     } else if (pieces[position] === currentPlayer) {
       setSelectedPiece(position);
     } else {
@@ -363,6 +362,13 @@ const Board = ({ gameOptions }) => {
       <div className="game-info">
         <p>Current Turn: Player {currentPlayer || "..."}</p>
         <p>Game Phase: {phase || "placing"}</p>
+      </div>
+      
+      {/* Replay Controls */}
+      <div className="replay-controls">
+        <button onClick={playNextMove} disabled={currentMoveIndex >= gameRecord.length}>
+          Next Move
+        </button>
       </div>
   
       {/* Reset Board Button */}

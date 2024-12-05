@@ -72,7 +72,13 @@ const Game = () => {
 
                     {console.log('Passing gameOptions and gameRecord to Board:', gameOptions, gameRecord)}
 
-                    <Board gameOptions={gameOptions} gameRecord={gameRecord} />  {/* Pass game record for replay */}
+                    <Board
+                        gameOptions={gameOptions}
+                        gameRecord={gameRecord}
+                        updateGameRecord={(newRecordUpdater) => {
+                            setGameRecord((prevRecord) => newRecordUpdater(prevRecord));
+                        }}
+                    />
                 </div>
             )}
         </div>
