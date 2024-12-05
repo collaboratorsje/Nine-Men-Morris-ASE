@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./Board.css";
 
-const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
-  console.log("Board component rendering...");
-    console.log("Received gameRecord in Board:", gameRecord);
+const Board = ({ gameOptions, gameRecord = null, updateGameRecord }) => {
+  console.log("Board rendering, gameRecord:", gameRecord);
+
+  const isReplayMode = !!gameRecord; // Check if replay mode is active
+  // Use this flag to toggle replay-specific functionality
+
   const [pieces, setPieces] = useState({
     'a1': null, 'd1': null, 'g1': null, 'b2': null, 'd2': null, 'f2': null,
     'c3': null, 'd3': null, 'e3': null, 'a4': null, 'b4': null, 'c4': null,
@@ -48,15 +51,57 @@ const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
   const [gameOver, setGameOver] = useState(false);
   const [gameOverMessage, setGameOverMessage] = useState("");
   const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
+  const [recordedMoves, setRecordedMoves] = useState([]); // For recording a new game
+
+  const mapBoardStateToPositions = useCallback((board) => {
+    const newPieces = {};
+    Object.keys(pieces).forEach((position) => {
+      const [x, y] = mapPositionToCoordinates(position);
+      newPieces[position] = board[x][y];
+    });
+    return newPieces;
+  }, [pieces]);
+
+  const showNotification = useCallback((message, type) => {
+    setNotification({ message, type });
+    if (type !== "game-over") {
+        setTimeout(() => setNotification(null), 3000);
+    }
+  }, [setNotification]);
+
+  // Wrap updateBoardState with useCallback
+  const updateBoardState = useCallback((data) => {
+    setPieces(mapBoardStateToPositions(data.board.grid));
+    setPlayer1Pieces(data.board.player1_pieces);
+    setPlayer2Pieces(data.board.player2_pieces);
+    setCurrentPlayer(data.current_player);
+    setPhase(data.phase);
+
+    if (data.phase === "game_over" || data.game_over) {
+        console.log("Game over detected via phase or flag:", data.message);
+        setGameOver(true);
+        setGameOverMessage(data.message || "Game Over! Thanks for playing.");
+    } else if (data.message) {
+        showNotification(data.message, "success");
+    }
+  }, [mapBoardStateToPositions, setPieces, setPlayer1Pieces, setPlayer2Pieces, setCurrentPlayer, setPhase, setGameOver, setGameOverMessage, showNotification]);
 
   useEffect(() => {
-    fetch('/api/board')
-      .then(res => res.json())
-      .then(data => {
-        updateBoardState(data);
-      })
-      .catch(error => console.error("Error fetching board state:", error));
-  }, []);
+    if (!gameOptions) {
+      console.error("No game options provided.");
+      return;
+    }
+  
+    // Determine the starting player based on game options
+    const startingPlayer = gameOptions.firstPlayer === 'player1' ? 1 : 2;
+    console.log("Setting initial currentPlayer to:", startingPlayer);
+    setCurrentPlayer(startingPlayer);
+  
+    // Reset recorded moves if it's a new game
+    if (!gameRecord) {
+      setRecordedMoves([]);
+    }
+  }, [gameOptions, gameRecord]);
 
   const applyMove = (move) => {
     const { action, position, from, to, player } = move;
@@ -76,15 +121,17 @@ const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
   };
 
   const playNextMove = () => {
-    if (currentMoveIndex < gameRecord.length) {
-      const move = gameRecord[currentMoveIndex];
-      console.log("Applying move:", move);
-      applyMove(move);
-      setCurrentMoveIndex((index) => index + 1);
-    } else {
-      console.log("All moves have been replayed.");
+    if (!gameRecord || !Array.isArray(gameRecord) || currentMoveIndex >= gameRecord.length) {
+        console.log("No replay data available or replay complete.");
+        return;
     }
+
+    const move = gameRecord[currentMoveIndex];
+    console.log("Applying replay move:", move);
+    applyMove(move);
+    setCurrentMoveIndex((index) => index + 1);
   };
+
 
   const placePiece = (position) => {
     const [x, y] = mapPositionToCoordinates(position);
@@ -97,9 +144,13 @@ const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
       .then((data) => {
         if (data.success) {
           updateBoardState(data);
-          updateGameRecord((prevRecord) => ({
-            moves: [...prevRecord.moves, { action: 'place', position, player: currentPlayer }],
-          }));
+
+          // Log the recorded move
+          const newMove = { action: 'place', position, player: currentPlayer };
+          console.log("Recording move in placePiece:", newMove);
+
+          setRecordedMoves((prevMoves) => [...prevMoves, newMove]);
+
           if (data.mill_formed) {
             setMillFormed(true);
             showNotification("Mill formed! Remove an opponent's piece.", "success");
@@ -109,7 +160,7 @@ const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
         }
       })
       .catch((error) => console.error("Error placing piece:", error));
-  };  
+  }; 
 
   const removePiece = (position) => {
     const [x, y] = mapPositionToCoordinates(position);
@@ -122,16 +173,19 @@ const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
       .then((data) => {
         if (data.success) {
           updateBoardState(data);
-          updateGameRecord((prevRecord) => ({
-            moves: [...prevRecord.moves, { action: 'remove', position, player: currentPlayer }],
-          }));
+  
+          // Log the recorded move
+          const newMove = { action: 'remove', position, player: currentPlayer };
+          console.log("Recording move in removePiece:", newMove);
+  
+          setRecordedMoves((prevMoves) => [...prevMoves, newMove]);
           setMillFormed(false);
         } else {
           showNotification(data.message, "error");
         }
       })
       .catch((error) => console.error("Error removing piece:", error));
-  };  
+  };
 
   const movePiece = (position) => {
     if (selectedPiece) {
@@ -147,12 +201,13 @@ const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
         .then((data) => {
           if (data.success) {
             updateBoardState(data);
-            updateGameRecord((prevRecord) => ({
-              moves: [
-                ...prevRecord.moves,
-                { action: 'move', from: selectedPiece, to: position, player: currentPlayer },
-              ],
-            }));
+  
+            // Log the recorded move
+            const newMove = { action: 'move', from: selectedPiece, to: position, player: currentPlayer };
+            console.log("Recording move in movePiece:", newMove);
+  
+            setRecordedMoves((prevMoves) => [...prevMoves, newMove]);
+  
             if (data.mill_formed) {
               setMillFormed(true);
               showNotification("Mill formed! Remove an opponent's piece.", "success");
@@ -163,13 +218,13 @@ const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
             setSelectedPiece(null);
           }
         })
-        .catch((error) => showNotification("An unexpected error occurred.", "error"));
+        .catch((error) => console.error("Error moving piece:", error));
     } else if (pieces[position] === currentPlayer) {
       setSelectedPiece(position);
     } else {
       showNotification("You can only select your own pieces to move.", "error");
     }
-  };  
+  };
   
   const handleClick = (position) => {
     if (notification?.type === "game-over") return; // Prevent interaction after game over
@@ -195,32 +250,30 @@ const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
         <h2>Game Over</h2>
         <p>{message}</p>
         <div className="modal-buttons">
-          <button onClick={onReset}>Reset Game</button>
-          <button onClick={saveGameRecord} style={{ marginLeft: "10px" }}>
+          <button
+            onClick={() => {
+              console.log("Reset Button Clicked");
+              onReset();
+            }}
+          >
+            Reset Game
+          </button>
+          <button
+            onClick={() => {
+              console.log("Download Record Button Clicked");
+              saveRecordedGame();
+            }}
+            style={{ marginLeft: "10px" }}
+          >
             Download Record
           </button>
         </div>
       </div>
     </div>
-  );  
-
-  const updateBoardState = (data) => {
-    setPieces(mapBoardStateToPositions(data.board.grid));
-    setPlayer1Pieces(data.board.player1_pieces);
-    setPlayer2Pieces(data.board.player2_pieces);
-    setCurrentPlayer(data.current_player);
-    setPhase(data.phase);
-  
-    if (data.phase === "game_over" || data.game_over) {
-      console.log("Game over detected via phase or flag:", data.message);
-      setGameOver(true);
-      setGameOverMessage(data.message || "Game Over! Thanks for playing.");
-    } else if (data.message) {
-      showNotification(data.message, "success");
-    }
-  };  
+  );
 
   const resetBoard = () => {
+    console.log("Resetting the board...");
     fetch('/api/reset', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -232,16 +285,10 @@ const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
           setMillFormed(false);
           setGameOver(false); // Close modal
           setGameOverMessage(""); // Clear message
+          console.log("Board successfully reset");
         }
       })
       .catch((error) => console.error("Error resetting the board:", error));
-  };
-
-  const showNotification = (message, type) => {
-    setNotification({ message, type });
-    if (type !== "game-over") {
-      setTimeout(() => setNotification(null), 3000);
-    }
   };  
 
   const mapPositionToCoordinates = (position) => {
@@ -257,25 +304,18 @@ const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
     return positionMapping[position];
   };
 
-  const mapBoardStateToPositions = (board) => {
-    const newPieces = {};
-    Object.keys(pieces).forEach((position) => {
-      const [x, y] = mapPositionToCoordinates(position);
-      newPieces[position] = board[x][y];
-    });
-    return newPieces;
-  };
-
-  const saveGameRecord = () => {
-    const jsonString = JSON.stringify(gameRecord, null, 2); // Pretty-print JSON
+  const saveRecordedGame = () => {
+    console.log("Saving Recorded Game...");
+    const jsonString = JSON.stringify({ moves: recordedMoves }, null, 2);
     const blob = new Blob([jsonString], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "game_record.json";
+    link.download = "recorded_game.json";
     link.click();
     URL.revokeObjectURL(url); // Clean up
-  };
+    console.log("Game record downloaded");
+  };  
 
   return (
     <div className="board-container">
@@ -314,7 +354,7 @@ const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
         {/* Game Board */}
         <div className="board">
           {filteredLines.map(({ type, id }) => (
-          <div key={id} className={`line ${type} ${id}`}></div>
+            <div key={id} className={`line ${type} ${id}`}></div>
           ))}
           {Object.keys(pieces).map((position) => {
             const isOccupied = pieces[position];
@@ -339,7 +379,7 @@ const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
                   isSelectable ? "selectable" : ""
                 } ${selectedPiece === position ? "selected" : ""}`}
                 style={{ cursor: cursorStyle }}
-                onClick={() => handleClick(position)}
+                onClick={() => !isReplayMode && handleClick(position)} // Disable clicks in replay mode
               >
                 {isOccupied && (
                   <div
@@ -359,20 +399,26 @@ const Board = ({ gameOptions, gameRecord, updateGameRecord }) => {
       </div>
   
       {/* Game Phase and Turn Info */}
-      <div className="game-info">
-        <p>Current Turn: Player {currentPlayer || "..."}</p>
-        <p>Game Phase: {phase || "placing"}</p>
-      </div>
-      
+      {!isReplayMode && (
+        <div className="game-info">
+          <p>Current Turn: Player {currentPlayer || "..."}</p>
+          <p>Game Phase: {phase || "placing"}</p>
+        </div>
+      )}
+  
       {/* Replay Controls */}
-      <div className="replay-controls">
-        <button onClick={playNextMove} disabled={currentMoveIndex >= gameRecord.length}>
-          Next Move
-        </button>
-      </div>
+      {isReplayMode && (
+        <div className="replay-controls">
+          <button onClick={playNextMove} disabled={currentMoveIndex >= gameRecord.length}>
+            Next Move
+          </button>
+        </div>
+      )}
   
       {/* Reset Board Button */}
-      <button className="reset-button" onClick={resetBoard}>Reset Board</button>
+      {!isReplayMode && (
+        <button className="reset-button" onClick={resetBoard}>Reset Board</button>
+      )}
     </div>
   );
 };  
