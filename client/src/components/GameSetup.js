@@ -4,11 +4,10 @@ const GameSetup = ({ startGame }) => {
     const [firstPlayer, setFirstPlayer] = useState('player1');
     const [opponentType, setOpponentType] = useState('human');
     const [gameRecord, setGameRecord] = useState(null); // State to store the uploaded game record
-    const [gameRecord, setGameRecord] = useState(null); // State to store the uploaded game record
     const [gameType, setGameType] = useState('9mm');
 
     // Handle game setup submission
-    // Handle game setup submission
+
     const handleSubmit = (event) => {
         event.preventDefault();
         const options = { firstPlayer, opponentType, gameType };
@@ -28,60 +27,6 @@ const GameSetup = ({ startGame }) => {
                 }
             })
             .catch(error => console.error('Error setting up the game:', error));
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    startGame(options);
-                }
-            })
-            .catch(error => console.error('Error setting up the game:', error));
-    };
-
-    // Handle file upload
-    const handleFileUpload = (event) => {
-        const file = event.target.files[0];
-        if (!file) {
-            alert('No file selected.');
-            return;
-        }
-        if (file.type !== "application/json") {
-            alert('Invalid file format. Please upload a valid JSON file.');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const parsedRecord = JSON.parse(e.target.result.trim());
-                console.log("Parsed Game Record:", parsedRecord);
-
-                if (parsedRecord && Array.isArray(parsedRecord.moves)) {
-                    setGameRecord(parsedRecord); // Store the entire record
-                    alert('Game record uploaded successfully! Click Replay Game to start.');
-                } else {
-                    alert('Invalid JSON structure. Ensure it has a "moves" array.');
-                }
-            } catch (error) {
-                console.error("Error Parsing JSON:", error.message);
-                alert('Failed to parse JSON. Ensure the file format is valid.');
-            }
-        };
-        reader.readAsText(file);
-    };
-
-    // Handle replay game button click
-    const handleReplayGame = () => {
-        if (!gameRecord) {
-            alert('No game record loaded. Please upload a file first.');
-            return;
-        }
-
-        // Pass replay flag and game record to parent
-        startGame({ 
-            firstPlayer: 'replay', 
-            opponentType: 'replay', 
-            gameRecord: gameRecord.moves 
-        });
     };
 
     // Handle file upload

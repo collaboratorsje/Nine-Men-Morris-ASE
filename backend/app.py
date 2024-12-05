@@ -30,16 +30,12 @@ def setup_game():
 
     starting_player_id = 1 if starting_player == 'player1' else 2
 
-<<<<<<< HEAD
     try:
         game_manager = GameManager(board, player1, player2, game_type, starting_player_id)
     except Exception as e:
         print(f"Error initializing GameManager: {e}")
         return jsonify(success=False, error="Internal server error"), 510
 
-=======
-    game_manager = GameManager(board, player1, player2, starting_player_id)
->>>>>>> 4e4093c16bae29214daddd48e50394a9832f54ae
     return jsonify(
         success=True,
         board=game_manager.get_board_state(),
@@ -96,11 +92,7 @@ def move_piece():
     print("Backend received move_piece payload:", data)
 
     if not data or 'from_x' not in data or 'from_y' not in data or 'to_x' not in data or 'to_y' not in data:
-<<<<<<< HEAD
         return jsonify(success=False, error="Invalid data: coordinates are missing"), 420
-=======
-        return jsonify(success=False, error="Invalid data: coordinates are missing"), 400
->>>>>>> 4e4093c16bae29214daddd48e50394a9832f54ae
 
     from_x = data['from_x']
     from_y = data['from_y']
@@ -173,7 +165,6 @@ def reset_board():
 
 
     global game_manager
-<<<<<<< HEAD
 
     game_type = game_manager.game_type
     if game_type == '9mm':
@@ -186,8 +177,6 @@ def reset_board():
     # player1 = Player(1, 9)
     # player2 = Player(2, 9)
         
-=======
->>>>>>> 4e4093c16bae29214daddd48e50394a9832f54ae
     board = Board()
 
     try:
