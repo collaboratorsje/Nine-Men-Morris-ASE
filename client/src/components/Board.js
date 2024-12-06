@@ -41,8 +41,8 @@ const Board = ({ gameOptions, gameRecord = null, updateGameRecord }) => {
     (line) => line.type !== 'diagonal' || gameOptions.gameType === '12mm'
   );
 
-  const [player1Pieces, setPlayer1Pieces] = useState(9);
-  const [player2Pieces, setPlayer2Pieces] = useState(9);
+  const [player1Pieces, setPlayer1Pieces] = useState(gameOptions.gameType === "9mm" ? 9 : 12);
+  const [player2Pieces, setPlayer2Pieces] = useState(gameOptions.gameType === "9mm" ? 9 : 12);
   const [currentPlayer, setCurrentPlayer] = useState(null);
   const [phase, setPhase] = useState("placing");
   const [selectedPiece, setSelectedPiece] = useState(null);

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './GameSetup.css';
 
 const GameSetup = ({ startGame }) => {
     const [firstPlayer, setFirstPlayer] = useState('player1');
@@ -74,51 +75,90 @@ const GameSetup = ({ startGame }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <h2>Game Setup</h2>
+            <form onSubmit={handleSubmit} aria-labelledby="game-setup-header" className="game-setup-form">
+        <header className="App-header">
+            <h1 id="game-setup-header" className="game-setup-title">Play Nine Men's Morris</h1>
+        </header>
+        <section className="game-setup-section">
+            <h2 className="game-setup-section-title">Game Setup</h2>
 
-            <div>
-                <label>Who goes first: </label>
-                <select value={firstPlayer} onChange={(e) => setFirstPlayer(e.target.value)}>
+            <div className="game-setup-item">
+                <label htmlFor="first-player-select" className="game-setup-label">Who goes first: </label>
+                <select
+                    id="first-player-select"
+                    value={firstPlayer}
+                    onChange={(e) => setFirstPlayer(e.target.value)}
+                    className="game-setup-select"
+                >
                     <option value="player1">Player 1</option>
                     <option value="player2">Player 2</option>
                 </select>
             </div>
 
-            <div>
-                <label>Opponent: </label>
-                <select value={opponentType} onChange={(e) => setOpponentType(e.target.value)}>
+            <div className="game-setup-item">
+                <label htmlFor="opponent-type-select" className="game-setup-label">Opponent: </label>
+                <select
+                    id="opponent-type-select"
+                    value={opponentType}
+                    onChange={(e) => setOpponentType(e.target.value)}
+                    className="game-setup-select"
+                >
                     <option value="human">Human</option>
                     <option value="computer">Computer</option>
                 </select>
             </div>
 
-            <div>
-                <label>Game Type: </label>
-                <select value={gameType} onChange={(e) => setGameType(e.target.value)}>
-                    <option value="9mm">9 men's morris</option>
-                    <option value="12mm">12 men's morris</option>
+            <div className="game-setup-item">
+                <label htmlFor="game-type-select" className="game-setup-label">Game Type: </label>
+                <select
+                    id="game-type-select"
+                    value={gameType}
+                    onChange={(e) => setGameType(e.target.value)}
+                    className="game-setup-select"
+                >
+                    <option value="9mm">9 Men's Morris</option>
+                    <option value="12mm">12 Men's Morris</option>
                 </select>
             </div>
 
-            <button type="submit">Start Game</button>
+            <button type="submit" className="game-setup-button" aria-label="Start the game">Start Game</button>
+        </section>
 
-            <h3>Load Game Record</h3>
-            <input type="file" accept=".json" onChange={handleFileUpload} />
-            <div>
-                <label>
-                    <input 
-                        type="checkbox" 
-                        checked={autoReplay} 
-                        onChange={(e) => setAutoReplay(e.target.checked)} 
+        <section className="game-setup-section">
+            <h3 className="game-setup-subtitle">Load Game Record</h3>
+            <input
+                type="file"
+                accept=".json"
+                onChange={handleFileUpload}
+                className="game-setup-input"
+                aria-label="Upload a game record file in JSON format"
+            />
+
+            <div className="game-setup-item">
+                <label htmlFor="auto-replay-checkbox" className="game-setup-label">
+                    <input
+                        id="auto-replay-checkbox"
+                        type="checkbox"
+                        checked={autoReplay}
+                        onChange={(e) => setAutoReplay(e.target.checked)}
+                        className="game-setup-checkbox"
                     />
                     Enable Auto Replay
                 </label>
             </div>
-            <button type="button" onClick={handleReplayGame} disabled={!gameRecord}>
+
+            <button
+                type="button"
+                onClick={handleReplayGame}
+                disabled={!gameRecord}
+                aria-disabled={!gameRecord}
+                className="game-setup-button"
+            >
                 Replay Game
             </button>
-        </form>
+        </section>
+    </form>
+
     );
 };
 
