@@ -5,8 +5,7 @@ const GameSetup = ({ startGame }) => {
     const [opponentType, setOpponentType] = useState('human');
     const [gameRecord, setGameRecord] = useState(null); // State to store the uploaded game record
     const [gameType, setGameType] = useState('9mm');
-
-    // Handle game setup submission
+    const [autoReplay, setAutoReplay] = useState(false); // New state for auto-replay
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -29,7 +28,6 @@ const GameSetup = ({ startGame }) => {
             .catch(error => console.error('Error setting up the game:', error));
     };
 
-    // Handle file upload
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (!file) {
@@ -61,18 +59,17 @@ const GameSetup = ({ startGame }) => {
         reader.readAsText(file);
     };
 
-    // Handle replay game button click
     const handleReplayGame = () => {
         if (!gameRecord) {
             alert('No game record loaded. Please upload a file first.');
             return;
         }
 
-        // Pass replay flag and game record to parent
         startGame({ 
             firstPlayer: 'replay', 
             opponentType: 'replay', 
-            gameRecord: gameRecord.moves 
+            gameRecord: gameRecord.moves, 
+            autoReplay // Pass autoReplay flag
         });
     };
 
@@ -108,6 +105,16 @@ const GameSetup = ({ startGame }) => {
 
             <h3>Load Game Record</h3>
             <input type="file" accept=".json" onChange={handleFileUpload} />
+            <div>
+                <label>
+                    <input 
+                        type="checkbox" 
+                        checked={autoReplay} 
+                        onChange={(e) => setAutoReplay(e.target.checked)} 
+                    />
+                    Enable Auto Replay
+                </label>
+            </div>
             <button type="button" onClick={handleReplayGame} disabled={!gameRecord}>
                 Replay Game
             </button>
@@ -116,4 +123,3 @@ const GameSetup = ({ startGame }) => {
 };
 
 export default GameSetup;
-

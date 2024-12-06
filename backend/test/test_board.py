@@ -1,9 +1,10 @@
 import pytest
 from game_logic.board import Board
+from game_logic.player import Player
 
 @pytest.fixture
 def board():
-    return Board()
+    return Board(game_type="9mm")  # Default to 9mm
 
 def test_board_initialization(board):
     assert board.size == 7
@@ -75,3 +76,9 @@ def test_display(board, capsys):
     assert "X" in captured.out
     assert "O" in captured.out
     
+def test_12mm_valid_positions():
+    board = Board(game_type="12mm")
+    valid_positions = board.get_valid_positions()
+    assert (1, 1) in valid_positions
+    assert (3, 3) not in valid_positions  # Still invalid center position
+

@@ -4,10 +4,10 @@ from game_logic.gamemanager import GameManager
 
 class TestGameManager:
     def test_place_piece(self):
-        board = Board()
+        board = Board(game_type="9mm")
         player1 = Player(1, 9)
         player2 = Player(2, 9)
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1, game_type="9mm")
 
         # Player 1 places a piece at (0, 0)
         result = game_manager.place_piece(0, 0)
@@ -43,10 +43,10 @@ class TestGameManager:
         assert result is False  # Should return False since (2, 2) was not placed
 
     def test_switch_turn(self):
-        board = Board()
+        board = Board(game_type="9mm")
         player1 = Player(1, 9)
         player2 = Player(2, 9)
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1, game_type="9mm")
 
         assert game_manager.get_current_player() == 1  # Initial turn
         game_manager.switch_turn()
@@ -55,10 +55,10 @@ class TestGameManager:
         assert game_manager.get_current_player() == 1  # Switched back
 
     def test_get_board_state(self):
-        board = Board()
+        board = Board(game_type="9mm")
         player1 = Player(1, 9)
         player2 = Player(2, 9)
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1, game_type="9mm")
 
         # Place pieces and check state
         game_manager.place_piece(0, 0)
@@ -67,34 +67,11 @@ class TestGameManager:
         assert state['player1_pieces'] == 8
         assert state['player2_pieces'] == 9
 
-    def test_determine_phase(self):
-        board = Board()
-        player1 = Player(1, 9)
-        player2 = Player(2, 9)
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
-
-        # Placing phase
-        assert game_manager.determine_phase() == "placing"
-
-        # Flying phase
-        board = Board()
-        player1 = Player(1, 0)
-        player2 = Player(2, 0)
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
-        board.grid[0][0] = 2
-        board.grid[0][3] = 2
-        board.grid[0][6] = 2
-        assert game_manager.determine_phase() == "flying"
-
-        # Moving phase
-        board.grid[2][2] = 2
-        assert game_manager.determine_phase() == "moving"
-
     def test_all_pieces_in_mills(self):
-        board = Board()
+        board = Board(game_type="9mm")
         player1 = Player(1, 0)
         player2 = Player(2, 0)
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1, game_type="9mm")
         board.grid[0][0] = 2
         board.grid[0][3] = 2
         board.grid[0][6] = 2
@@ -103,10 +80,10 @@ class TestGameManager:
         assert result is True  # Check that the method correctly identifies the mill
     
     def test_get_pieces_on_board(self):
-        board = Board()
+        board = Board(game_type="9mm")
         player1 = Player(1, 9)
         player2 = Player(2, 9)
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1, game_type="9mm")
 
         # Place some pieces for Player 1
         board.grid[0][0] = 1
@@ -126,10 +103,10 @@ class TestGameManager:
         assert player2_count == 2, "Player 2 should have 2 pieces on the board."
 
     def test_invalid_move_does_not_change_piece_count(self):
-        board = Board()
+        board = Board(game_type="9mm")
         player1 = Player(1, 9)
         player2 = Player(2, 9)
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1, game_type="9mm")
 
         # Place pieces to set up the board
         game_manager.place_piece(0, 0)  # Player 1
@@ -157,10 +134,10 @@ class TestGameManager:
 
     def test_move_to_adjacent_valid_cell(self):
         # Initialize board, players, and game manager
-        board = Board()
+        board = Board(game_type="9mm")
         player1 = Player(1, 9)
         player2 = Player(2, 9)
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1, game_type="9mm")
 
         # Carefully place pieces for both players, alternating turns and avoiding mill formations
         game_manager.place_piece(0, 0)  # Player 1
@@ -197,10 +174,10 @@ class TestGameManager:
 
     def test_move_to_invalid_cell(self):
         # Initialize board, players, and game manager
-        board = Board()
+        board = Board(game_type="9mm")
         player1 = Player(1, 9)
         player2 = Player(2, 9)
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1, game_type="9mm")
 
         # Carefully place pieces for both players, alternating turns and avoiding mill formations
         game_manager.place_piece(0, 0)  # Player 1
@@ -234,10 +211,10 @@ class TestGameManager:
 
     def test_move_to_any_vacant_cell_flying_phase(self):
         # Initialize board, players, and game manager
-        board = Board()
+        board = Board(game_type="9mm")
         player1 = Player(1, 3)  # Player 1 has only 3 pieces, entering the flying phase
         player2 = Player(2, 9)  # Player 2 still has all 9 pieces
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1, game_type="9mm")
 
         # Simulate placing pieces to transition Player 1 to the flying phase
         game_manager.place_piece(0, 0)  # Player 1
@@ -262,10 +239,10 @@ class TestGameManager:
 
     def test_move_to_occupied_cell_flying_phase(self):
         # Initialize board, players, and game manager
-        board = Board()
+        board = Board(game_type="9mm")
         player1 = Player(1, 3)  # Player 1 has only 3 pieces, in the flying phase
         player2 = Player(2, 9)  # Player 2 has all 9 pieces
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1, game_type="9mm")
 
         # Simulate placing pieces to transition Player 1 to the flying phase
         game_manager.place_piece(0, 0)  # Player 1
@@ -290,19 +267,19 @@ class TestGameManager:
         assert board.grid[0][3] == 2, "The destination cell should remain occupied by Player 2's piece"
 
     def test_determine_phase_placing(self):
-        board = Board()
+        board = Board(game_type="9mm")
         player1 = Player(1, 9)
         player2 = Player(2, 9)
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1, game_type="9mm")
 
         # Both players have pieces left to place, so the phase should be "placing"
         assert game_manager.determine_phase() == "placing", "Phase should be 'placing' when both players have pieces to place."
 
     def test_determine_phase_moving(self):
-        board = Board()
+        board = Board(game_type="9mm")
         player1 = Player(1, 0)  # All pieces are placed for Player 1
         player2 = Player(2, 0)  # All pieces are placed for Player 2
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1, game_type="9mm")
 
         # Place more than 3 pieces on the board for both players
         board.grid[0][0] = 1
@@ -321,10 +298,10 @@ class TestGameManager:
         assert game_manager.determine_phase() == "moving", "Phase should be 'moving' when all pieces are placed and both players have more than 3 pieces on the board."
 
     def test_determine_phase_flying(self):
-        board = Board()
+        board = Board(game_type="9mm")
         player1 = Player(1, 0)  # All pieces are placed for Player 1
         player2 = Player(2, 0)  # All pieces are placed for Player 2
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1, game_type="9mm")
 
         # Simulate Player 1 having only 3 pieces left on the board
         board.grid[0][0] = 1
@@ -342,10 +319,10 @@ class TestGameManager:
 
     def test_all_pieces_in_mills(self):
         # Initialize board, players, and game manager
-        board = Board()
+        board = Board(game_type="9mm")
         player1 = Player(1, 0)  # Player 1 has placed all pieces
         player2 = Player(2, 0)  # Player 2 has placed all pieces
-        game_manager = GameManager(board, player1, player2, starting_player_id=1)
+        game_manager = GameManager(board, player1, player2, starting_player_id=1, game_type="9mm")
 
         # Simulate placing pieces to form mills for Player 1
         player1.placed_pieces = [(0, 0), (0, 3), (0, 6)]  # This forms a mill

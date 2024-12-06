@@ -1,4 +1,5 @@
 from game_logic.player import Player
+from game_logic.board import Board
 
 def test_player_initialization():
     player1 = Player(1, 9)
@@ -14,6 +15,7 @@ def test_place_piece():
     assert player1.pieces == 8  # Player should have one less piece
 
 def test_remove_piece_multiple_pieces():
+    board = Board(game_type="9mm")  # Include game_type
     player1 = Player(1, 9)
     player1.place_piece((0, 0))
     player1.place_piece((1, 1))

@@ -93,17 +93,35 @@ const Board = ({ gameOptions, gameRecord = null, updateGameRecord }) => {
       console.error("No game options provided.");
       return;
     }
-  
+
     // Determine the starting player based on game options
     const startingPlayer = gameOptions.firstPlayer === 'player1' ? 1 : 2;
     console.log("Setting initial currentPlayer to:", startingPlayer);
     setCurrentPlayer(startingPlayer);
-  
+
     // Reset recorded moves if it's a new game
     if (!gameRecord) {
       setRecordedMoves([]);
     }
-  }, [gameOptions, gameRecord]);
+
+    // Check if auto-replay is enabled and a valid gameRecord is available
+    if (gameOptions.autoReplay && gameRecord && Array.isArray(gameRecord)) {
+      console.log("Auto replay enabled. Starting automatic replay...");
+
+      const replayInterval = setInterval(() => {
+        if (currentMoveIndex < gameRecord.length) {
+          applyMove(gameRecord[currentMoveIndex]);
+          setCurrentMoveIndex((prevIndex) => prevIndex + 1);
+        } else {
+          console.log("Replay complete.");
+          clearInterval(replayInterval);
+        }
+      }, 1000); // Adjust delay (e.g., 1000ms) as needed for replay speed
+
+      // Cleanup function to clear the interval if the component unmounts or replay ends
+      return () => clearInterval(replayInterval);
+    }
+  }, [gameOptions, gameRecord, currentMoveIndex]);
 
   const applyMove = (move) => {
     const { action, position, from, to, player } = move;
